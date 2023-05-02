@@ -283,7 +283,21 @@ function check_king(){
 }
 
 function check_pawn(){
-
+    if(move_distance.mF != 0) return true;
+    if(turn){   //white
+        //promotion
+        if(move_direction.mR > 0) return true;
+        if(move_distance.mR > 2) return true;
+        if(move_distance.mR == 1) return false;
+        if(move_distance.mR == 2 && move[0].mR == 6 && game_board[5][move[0].mF] == 0) return false;
+        return true;
+    }else{      //black turn
+        if(move_direction.mR < 0) return true;
+        if(move_distance.mR > 2) return true;
+        if(move_distance.mR == 1) return false;
+        if(move_distance.mR == 2 && move[0].mR == 1 && game_board[2][move[0].mF] == 0) return false;
+        return true;
+    }
 }
 
 window.onload = ()=>{
