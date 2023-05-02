@@ -304,5 +304,7 @@ window.onload = ()=>{
             turn = !turn;
         }
     });
+
+    console.log("window loaded");
 };
 
