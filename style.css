@@ -1,0 +1,129 @@
+html, body{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main{
+    display: flex;
+
+}
+
+.chess_board{
+    width: 410px;
+    height: 410px;
+    display: flex;
+
+    box-shadow: 0 0 5px black;
+    border-radius: 5px;
+    background: lightgray;
+    overflow: hidden;
+}
+.line{
+    /*width: 410px;*/
+    /*height: 50px;*/
+    /*display: flex;*/
+}
+.cell{
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: bold;
+    font-size: 30px;
+    -webkit-text-stroke: 1px black;
+    color: white;
+}
+.white{
+    background: linear-gradient(45deg,white,#eee);
+}
+.black{
+    background: linear-gradient(45deg,#666,#888);
+}
+.file,.rank{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 0 1px black;
+    background: lightgray;
+    font-size: 10px;
+}
+.file{
+    width: 50px;
+    height: 10px;
+}
+.rank{
+    width: 10px;
+    height: 50px;
+}
+
+.info{
+    width: 200px;
+    height: 410px;
+    margin-left: 5px;
+
+    box-shadow: 0 0 5px black;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.notation{
+    width: 200px;
+    height: 380px;
+
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+.notation::-webkit-scrollbar{
+    display: none;
+}
+.notation_header, .notation_table{
+    width: 200px;
+
+    border-collapse : collapse;
+    table-layout: fixed;
+}
+th, td{
+    padding: 0;
+
+    box-shadow: 0 0 1px black;
+    text-align: center;
+}
+.notation_count{
+    width: 20px;
+}
+.notation_white, .notation_black{
+    width: 90px;
+}
+
+.move{
+    width: 200px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+
+    border: none;
+    box-shadow: 0 0 1px black;
+}
+.move_input{
+    width: 150px;
+    height: 30px;
+    padding: 0 0 0 10px;
+
+    border: none;
+}
+.move_btn{
+    width: 50px;
+    height: 30px;
+    padding: 0;
+
+    border: none;
+}
