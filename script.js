@@ -278,8 +278,43 @@ function check_queen(){
 }
 
 function check_king(){
-    if(!(move_distance.mF <= 1 && move_distance.mR <= 1)) return true;
+    // if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
+
+    let check_list = [];
+    //check can move
+    check_list.push(check_king_move(move[0].mR-1, move[0].mF-1,turn));
+    check_list.push(check_king_move(move[0].mR-1, move[0].mF,turn));
+    check_list.push(check_king_move(move[0].mR-1, move[0].mF+1,turn));
+
+    check_list.push(check_king_move(move[0].mR, move[0].mF-1,turn));
+    check_list.push(check_king_move(move[0].mR, move[0].mF+1,turn));
+
+    check_list.push(check_king_move(move[0].mR+1, move[0].mF-1,turn));
+    check_list.push(check_king_move(move[0].mR+1, move[0].mF,turn));
+    check_list.push(check_king_move(move[0].mR+1, move[0].mF+1,turn));
+
+    if(check_list.includes(true)) return true;
+
+    //pawn move
+    if(turn){   //white
+        if(game_board[move[1].mR-1][move[1].mF-1] == 16 || game_board[move[1].mR-1][move[1].mF+1] == 16) return true;
+    }else{      //black
+        if(game_board[move[1].mR+1][move[1].mF-1] == 6 || game_board[move[1].mR+1][move[1].mF+1] == 6) return true;
+    }
+
+    return false;
     //castling
+}
+
+function check_king_move(r,f,c){
+
+    //rook move
+
+    //bishop move
+
+    //knight move
+
+    return false;
 }
 
 function check_pawn(){
@@ -321,4 +356,3 @@ window.onload = ()=>{
 
     console.log("window loaded");
 };
-
