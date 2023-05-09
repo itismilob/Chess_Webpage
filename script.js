@@ -280,22 +280,88 @@ function check_queen(){
 function check_king(){
     // if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
 
-    let check_list = [];
     //check can move
-    check_list.push(check_king_move(move[0].mR-1, move[0].mF-1,turn));
-    check_list.push(check_king_move(move[0].mR-1, move[0].mF,turn));
-    check_list.push(check_king_move(move[0].mR-1, move[0].mF+1,turn));
+    //  king
+    //  queen
 
-    check_list.push(check_king_move(move[0].mR, move[0].mF-1,turn));
-    check_list.push(check_king_move(move[0].mR, move[0].mF+1,turn));
+    //  rook
+    //  up
+    for(let i=1;i<=move[1].mR;i++){
+        if(game_board[move[1].mR-i][move[1].mF] == 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF] == 15) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF] == 5) return true;
+        else break;
+    }
+    //  down
+    for(let i=1;i<8-move[1].mR;i++){
+        if(game_board[move[1].mR+i][move[1].mF] == 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF] == 15) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF] == 5) return true;
+        else break;
+    }
+    //  left
+    for(let i=1;i<=move[1].mF;i++){
+        if(game_board[move[1].mR][move[1].mF-i] == 0) continue;
+        if(turn && game_board[move[1].mR][move[1].mF-i] == 15) return true;
+        else if(!turn && game_board[move[1].mR][move[1].mF-i] == 5) return true;
+        else break;
+    }
+    //  right
+    for(let i=1;i<8-move[1].mF;i++){
+        if(game_board[move[1].mR][move[1].mF+i] == 0) continue;
+        if(turn && game_board[move[1].mR][move[1].mF+i] == 15) return true;
+        else if(!turn && game_board[move[1].mR][move[1].mF+i] == 5) return true;
+        else break;
+    }
+    //  rook
 
-    check_list.push(check_king_move(move[0].mR+1, move[0].mF-1,turn));
-    check_list.push(check_king_move(move[0].mR+1, move[0].mF,turn));
-    check_list.push(check_king_move(move[0].mR+1, move[0].mF+1,turn));
+    //  bishop
+    let distance = 0;
+    //  up left -1, -1
+    if(move[1].mR < move[1].mF) distance = move[1].mR;
+    else if(move[1].mR > move[1].mF) distance = move[1].mF;
+    else distance = move[1].mR;
+    for(let i=1;i<distance;i++){
+        if(game_board[move[1].mR-i][move[1].mF-i] == 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF-i] == 13) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF-i] == 3) return true;
+        else break;
+    }
+    //  up right -1, +1
+    if(move[1].mR < 8-move[1].mF) distance = move[1].mR;
+    else if(move[1].mR > 8-move[1].mF) distance = 8-move[1].mF;
+    else distance = move[1].mR;
+    for(let i=1;i<distance;i++){
+        if(game_board[move[1].mR-i][move[1].mF+i] == 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF+i] == 13) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF+i] == 3) return true;
+        else break;
+    }
+    //  down left +1, -1
+    if(8-move[1].mR < move[1].mF) distance = 8-move[1].mR;
+    else if(8-move[1].mR > move[1].mF) distance = move[1].mF;
+    else distance = 8-move[1].mR;
+    for(let i=1;i<distance;i++){
+        if(game_board[move[1].mR+i][move[1].mF-i] == 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF-i] == 13) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF-i] == 3) return true;
+        else break;
+    }
+    //  down right +1, +1
+    if(8-move[1].mR < 8-move[1].mF) distance = 8-move[1].mR;
+    else if(8-move[1].mR > 8-move[1].mF) distance = 8-move[1].mF;
+    else distance = 8-move[1].mR;
+    for(let i=1;i<distance;i++){
+        if(game_board[move[1].mR+i][move[1].mF+i] == 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF+i] == 13) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF+i] == 3) return true;
+        else break;
+    }
+    //  bishop
 
-    if(check_list.includes(true)) return true;
+    //knight
 
-    //pawn move
+    //pawn
     if(turn){   //white
         if(game_board[move[1].mR-1][move[1].mF-1] == 16 || game_board[move[1].mR-1][move[1].mF+1] == 16) return true;
     }else{      //black
@@ -304,17 +370,6 @@ function check_king(){
 
     return false;
     //castling
-}
-
-function check_king_move(r,f,c){
-
-    //rook move
-
-    //bishop move
-
-    //knight move
-
-    return false;
 }
 
 function check_pawn(){
