@@ -12,10 +12,12 @@ let move = [];
 let move_piece;
 let move_distance;
 let move_direction = [];
+let isKingMoved = [false, false];
 
 let turn = true;
 let isMoved = false;
 let isTake = false;
+let isCheck = false;
 
 let game_board = [
     [15,14,13,12,11,13,14,15],
@@ -86,13 +88,13 @@ function update_chess_board(){
 
 function add_piece_event(){
     cells.forEach((cell,i)=>{
-        cell.addEventListener("click",(e)=>{
+        cell.addEventListener("click",()=>{
             move = [{mR:parseInt(i%8), mF:parseInt(i/8)}];
             move_piece = piece_code[game_board[move[0].mR][move[0].mF]%10];
             console.log(move_piece);
         });
 
-        cell.addEventListener("dragstart",(e)=>{
+        cell.addEventListener("dragstart",()=>{
             move = [{mR:parseInt(i%8), mF:parseInt(i/8)}];
             move_piece = game_board[move[0].mR][move[0].mF];
             isMoved = false;
@@ -113,9 +115,9 @@ function add_piece_event(){
             move_distance = {mR:Math.abs(move_direction.mR), mF:Math.abs(move_direction.mF)};
 
             // not piece
-            if(move_piece == 0) return;
+            if(move_piece === 0) return;
             // not move
-            if(move[0].mR == move[1].mR && move[0].mF == move[1].mF) return;
+            if(move[0].mR === move[1].mR && move[0].mF === move[1].mF) return;
             // not turn
             if((turn && move_piece > 10) || (!turn && move_piece < 10)){
                 console.log("it's not your turn");
@@ -124,14 +126,74 @@ function add_piece_event(){
             // not empty -> enemy take
             if(turn && game_board[move[1].mR][move[1].mF] > 10){    //white takes black
                 isTake = true;
-            }else if(!turn && game_board[move[1].mR][move[1].mF] < 10 && game_board[move[1].mR][move[1].mF] != 0) {  //black takes white
+            }else if(!turn && game_board[move[1].mR][move[1].mF] < 10 && game_board[move[1].mR][move[1].mF] !== 0) {  //black takes white
                 isTake = true;
-            }else if(game_board[move[1].mR][move[1].mF] != 0) return;
+            }
 
             //check can move
             switch(parseInt(move_piece%10)){
                 case 1:     //K
+                    //castling
+                    if(turn){
+                        if(!isCheck && !isKingMoved[0]){
+                            //king side castling
+                            if(move[1].mR === 7 && (move[1].mF === 6 || move[1].mF === 7) && game_board[7][5] === 0 && game_board[7][6] === 0 && game_board[7][7] === 5){
+                                game_board[7][6] = 1;
+                                game_board[7][5] = 5;
+                                game_board[7][4] = 0;
+                                game_board[7][7] = 0;
+                                update_chess_board();
+                                notation.push(["O-O",""]);
+                                update_notation_table();
+                                turn = !turn;
+                                isKingMoved[0] = true;
+                                return;
+                            //queen side castling
+                            }else if(move[1].mR === 7 && (move[1].mF === 0 || move[1].mF === 1 || move[1].mF === 2) && game_board[7][1] === 0 && game_board[7][2] === 0 && game_board[7][3] === 0){
+                                game_board[7][2] = 1;
+                                game_board[7][3] = 5;
+                                game_board[7][0] = 0;
+                                game_board[7][4] = 0;
+                                update_chess_board();
+                                notation.push(["O-O-O",""]);
+                                update_notation_table();
+                                turn = !turn;
+                                isKingMoved[0] = true;
+                                return;
+                            }
+                        }
+                    }else{
+                        if(!isCheck && !isKingMoved[1]){
+                            //king side castling
+                            if(move[1].mR === 0 && (move[1].mF === 6 || move[1].mF === 7) && game_board[0][5] === 0 && game_board[0][6] === 0 ){
+                                game_board[0][6] = 11;
+                                game_board[0][5] = 15;
+                                game_board[0][4] = 0;
+                                game_board[0][7] = 0;
+                                update_chess_board();
+                                notation[notation.length-1][1] = "O-O";
+                                update_notation_table();
+                                turn = !turn;
+                                isKingMoved[1] = true;
+                                return;
+                                //queen side castling
+                            }else if(move[1].mR === 0 && (move[1].mF === 0 || move[1].mF === 1 || move[1].mF === 2)&& game_board[0][1] === 0 && game_board[0][2] === 0 && game_board[0][3] === 0){
+                                game_board[0][2] = 11;
+                                game_board[0][3] = 15;
+                                game_board[0][0] = 0;
+                                game_board[0][4] = 0;
+                                update_chess_board();
+                                notation[notation.length-1][1] = "O-O-O";
+                                update_notation_table();
+                                turn = !turn;
+                                isKingMoved[1] = true;
+                                return;
+                            }
+                        }
+                    }
                     if(check_king()) return;
+                    if(turn) isKingMoved[0] = true;
+                    else isKingMoved[1] = true;
                     break;
                 case 2:     //Q
                     if(check_queen()) return;
@@ -162,10 +224,10 @@ function add_piece_event(){
             let move_code;
 
             if(isTake){
-                if(move_piece_code == piece_code[6]) move_piece_code = file_char[move[0].mF];
+                if(move_piece_code === piece_code[6]) move_piece_code = file_char[move[0].mF];
                 move_code = move_piece_code + "x" + file_char[move[1].mF] + Math.abs(8 - move[1].mR);
             }else{
-                if(move_piece_code == piece_code[6]) move_piece_code = '';
+                if(move_piece_code === piece_code[6]) move_piece_code = '';
                 move_code = move_piece_code + file_char[move[1].mF] + Math.abs(8 - move[1].mR);
             }
 
@@ -183,211 +245,322 @@ function add_piece_event(){
 }
 
 function check_rook(){
-    if(!(move_distance.mR == 0 || move_distance.mF == 0)) return true;
-    if(move_distance.mR == 1 || move_distance.mF == 1) return false;
+    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+    if(!(move_distance.mR === 0 || move_distance.mF === 0)) return true;
+    if(move_distance.mR === 1 || move_distance.mF === 1) return false;
 
     if(move_distance.mR > move_distance.mF){    //rank move
         for(let i=1;i<move_distance.mR;i++){
-            if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] != 0) return true;     //move up
-            if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] != 0) return true;     //move down
+            if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
+            if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
         }
     }else{                                      //file move
         for(let i=1;i<move_distance.mF;i++){
-            if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] != 0) return true;     //move left
-            if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] != 0) return true;     //move right
+            if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
+            if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
         }
     }
     return false;
 }
 
 function check_knight(){
-    if(!((move_distance.mR == 1 && move_distance.mF == 2) || (move_distance.mR == 2 && move_distance.mF == 1))) return true;
-    return false;
+    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+    return !((move_distance.mR === 1 && move_distance.mF === 2) || (move_distance.mR === 2 && move_distance.mF === 1));
 }
 
 function check_bishop(){
-    if(!(move_distance.mR == move_distance.mF)) return true;
-    if(move_distance.mR == 1 && move_distance.mF == 1) return false;
+    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+    if(!(move_distance.mR === move_distance.mF)) return true;
+    if(move_distance.mR === 1 && move_distance.mF === 1) return false;
 
     if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
         for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR-i][move[0].mF-i] != 0) return true;
+            if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
         }
     }
     if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
         for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR+i][move[0].mF+i] != 0) return true;
+            if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
         }
     }
     if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
         for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR-i][move[0].mF+i] != 0) return true;
+            if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
         }
     }
     if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
         for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR+i][move[0].mF-i] != 0) return true;
+            if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
         }
     }
 }
 
 function check_queen(){
-    if(!(move_distance.mR == 0 || move_distance.mF == 0) && !(move_distance.mR == move_distance.mF)) return true;
+    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+    if(!(move_distance.mR === 0 || move_distance.mF === 0) && !(move_distance.mR === move_distance.mF)) return true;
 
     //rook move
-    if(move_distance.mR == 0 || move_distance.mF == 0){
-        if(move_distance.mR == 1 || move_distance.mF == 1) return false;
+    if(move_distance.mR === 0 || move_distance.mF === 0){
+        if(move_distance.mR === 1 || move_distance.mF === 1) return false;
         if(move_distance.mR > move_distance.mF){    //rank move
             for(let i=1;i<move_distance.mR;i++){
-                if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] != 0) return true;     //move up
-                if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] != 0) return true;     //move down
+                if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
+                if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
             }
         }else{                                      //file move
             for(let i=1;i<move_distance.mF;i++){
-                if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] != 0) return true;     //move left
-                if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] != 0) return true;     //move right
+                if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
+                if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
             }
         }
     }
 
     //bishop move
-    if(move_distance.mR == move_distance.mF){
-        if(move_distance.mR == 1 && move_distance.mF == 1) return false;
+    if(move_distance.mR === move_distance.mF){
+        if(move_distance.mR === 1 && move_distance.mF === 1) return false;
         if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
             for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR-i][move[0].mF-i] != 0) return true;
+                if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
             }
         }
         if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
             for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR+i][move[0].mF+i] != 0) return true;
+                if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
             }
         }
         if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
             for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR-i][move[0].mF+i] != 0) return true;
+                if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
             }
         }
         if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
             for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR+i][move[0].mF-i] != 0) return true;
+                if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
             }
         }
     }
     return false;
 }
 
+
+function check_diagonal_distance(a,b){
+    if(a < b) return a;
+    else if(a > b) return b;
+    else return a;
+}
 function check_king(){
-    // if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
+    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+    if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
 
     //check can move
-    //  king
-    //  queen
+    let diagonal_distance = [];
+    diagonal_distance.push(check_diagonal_distance(move[1].mR, move[1].mF));
+    diagonal_distance.push(check_diagonal_distance(move[1].mR, 7-move[1].mF));
+    diagonal_distance.push(check_diagonal_distance(7-move[1].mR, move[1].mF));
+    diagonal_distance.push(check_diagonal_distance(7-move[1].mR, 7-move[1].mF));
 
-    //  rook
+    //  -king-
+    if(turn){
+        if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 11) return true;
+        if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 11) return true;
+        if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 11) return true;
+
+        if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 11) return true;
+        if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 11) return true;
+
+        if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 11) return true;
+        if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 11) return true;
+        if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 11) return true;
+    }else{
+        if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 1) return true;
+        if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 1) return true;
+        if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 1) return true;
+
+        if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 1) return true;
+        if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 1) return true;
+
+        if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 1) return true;
+        if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 1) return true;
+        if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 1) return true;
+    }
+    //  -king-
+
+    //  -queen-
+    //  queen rook
     //  up
     for(let i=1;i<=move[1].mR;i++){
-        if(game_board[move[1].mR-i][move[1].mF] == 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF] == 15) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF] == 5) return true;
+        if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
         else break;
     }
     //  down
     for(let i=1;i<8-move[1].mR;i++){
-        if(game_board[move[1].mR+i][move[1].mF] == 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF] == 15) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF] == 5) return true;
+        if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
         else break;
     }
     //  left
     for(let i=1;i<=move[1].mF;i++){
-        if(game_board[move[1].mR][move[1].mF-i] == 0) continue;
-        if(turn && game_board[move[1].mR][move[1].mF-i] == 15) return true;
-        else if(!turn && game_board[move[1].mR][move[1].mF-i] == 5) return true;
+        if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
+        if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
+        else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
         else break;
     }
     //  right
     for(let i=1;i<8-move[1].mF;i++){
-        if(game_board[move[1].mR][move[1].mF+i] == 0) continue;
-        if(turn && game_board[move[1].mR][move[1].mF+i] == 15) return true;
-        else if(!turn && game_board[move[1].mR][move[1].mF+i] == 5) return true;
+        if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
+        if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
+        else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
         else break;
     }
-    //  rook
+    //  queen rook
 
-    //  bishop
-    let distance = 0;
+    //  queen bishop
     //  up left -1, -1
-    if(move[1].mR < move[1].mF) distance = move[1].mR;
-    else if(move[1].mR > move[1].mF) distance = move[1].mF;
-    else distance = move[1].mR;
-    for(let i=1;i<distance;i++){
-        if(game_board[move[1].mR-i][move[1].mF-i] == 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF-i] == 13) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF-i] == 3) return true;
+    for(let i=1;i<=diagonal_distance[0];i++){
+        if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF-i] === 12) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 2) return true;
         else break;
     }
     //  up right -1, +1
-    if(move[1].mR < 8-move[1].mF) distance = move[1].mR;
-    else if(move[1].mR > 8-move[1].mF) distance = 8-move[1].mF;
-    else distance = move[1].mR;
-    for(let i=1;i<distance;i++){
-        if(game_board[move[1].mR-i][move[1].mF+i] == 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF+i] == 13) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF+i] == 3) return true;
+    for(let i=1;i<=diagonal_distance[1];i++){
+        if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF+i] === 12) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 2) return true;
         else break;
     }
     //  down left +1, -1
-    if(8-move[1].mR < move[1].mF) distance = 8-move[1].mR;
-    else if(8-move[1].mR > move[1].mF) distance = move[1].mF;
-    else distance = 8-move[1].mR;
-    for(let i=1;i<distance;i++){
-        if(game_board[move[1].mR+i][move[1].mF-i] == 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF-i] == 13) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF-i] == 3) return true;
+    for(let i=1;i<=diagonal_distance[2];i++){
+        if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF-i] === 12) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 2) return true;
         else break;
     }
     //  down right +1, +1
-    if(8-move[1].mR < 8-move[1].mF) distance = 8-move[1].mR;
-    else if(8-move[1].mR > 8-move[1].mF) distance = 8-move[1].mF;
-    else distance = 8-move[1].mR;
-    for(let i=1;i<distance;i++){
-        if(game_board[move[1].mR+i][move[1].mF+i] == 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF+i] == 13) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF+i] == 3) return true;
+    for(let i=1;i<=diagonal_distance[3];i++){
+        if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF+i] === 12) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 2) return true;
         else break;
     }
-    //  bishop
+    //  queen bishop
+    //  -queen-
 
-    //knight
-
-    //pawn
-    if(turn){   //white
-        if(game_board[move[1].mR-1][move[1].mF-1] == 16 || game_board[move[1].mR-1][move[1].mF+1] == 16) return true;
-    }else{      //black
-        if(game_board[move[1].mR+1][move[1].mF-1] == 6 || game_board[move[1].mR+1][move[1].mF+1] == 6) return true;
+    //  -rook-
+    //  up
+    for(let i=1;i<=move[1].mR;i++){
+        if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
+        else break;
     }
+    //  down
+    for(let i=1;i<8-move[1].mR;i++){
+        if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
+        else break;
+    }
+    //  left
+    for(let i=1;i<=move[1].mF;i++){
+        if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
+        if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
+        else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
+        else break;
+    }
+    //  right
+    for(let i=1;i<8-move[1].mF;i++){
+        if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
+        if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
+        else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
+        else break;
+    }
+    //  -rook-
 
+    //  -bishop-
+    //  up left -1, -1
+    for(let i=1;i<=diagonal_distance[0];i++){
+        if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF-i] === 13) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 3) return true;
+        else break;
+    }
+    //  up right -1, +1
+    for(let i=1;i<=diagonal_distance[1];i++){
+        if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
+        if(turn && game_board[move[1].mR-i][move[1].mF+i] === 13) return true;
+        else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 3) return true;
+        else break;
+    }
+    //  down left +1, -1
+    for(let i=1;i<=diagonal_distance[2];i++){
+        if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF-i] === 13) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 3) return true;
+        else break;
+    }
+    //  down right +1, +1
+    for(let i=1;i<=diagonal_distance[3];i++){
+        if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
+        if(turn && game_board[move[1].mR+i][move[1].mF+i] === 13) return true;
+        else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 3) return true;
+        else break;
+    }
+    //  -bishop-
+
+    //  -knight-
+    if(turn){
+        //top
+        if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 14) return true;
+        if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 14) return true;
+        //left
+        if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 14) return true;
+        if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 14) return true;
+        //right
+        if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 14) return true;
+        if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 14) return true;
+        //bottom
+        if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 14) return true;
+        if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 14) return true;
+    }else{
+        //top
+        if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 4) return true;
+        if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 4) return true;
+        //left
+        if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 4) return true;
+        if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 4) return true;
+        //right
+        if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 4) return true;
+        if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 4) return true;
+        //bottom
+        if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 4) return true;
+        if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 4) return true;
+    }
+    //  -knight-
+
+    //  -pawn-
+    if(turn){   //white
+        if(game_board[move[1].mR-1][move[1].mF-1] === 16 || game_board[move[1].mR-1][move[1].mF+1] === 16) return true;
+    }else{      //black
+        if(game_board[move[1].mR+1][move[1].mF-1] === 6 || game_board[move[1].mR+1][move[1].mF+1] === 6) return true;
+    }
+    //  -pawn-
     return false;
-    //castling
 }
 
 function check_pawn(){
-    if(move_distance.mF != 0) return true;
+    if(move_distance.mF !== 0) return true;
     if(turn){   //white
-        //promotion
-        if(move_direction.mR > 0) return true;
-        if(move_distance.mR > 2) return true;
-        if(move_distance.mR == 1) return false;
-        if(move_distance.mR == 2 && move[0].mR == 6 && game_board[5][move[0].mF] == 0) return false;
-        return true;
+        if(move_direction.mR > 0 || move_distance.mR > 2) return true;
+        if(move_distance.mR === 2 && move[0].mR !== 6 && game_board[5][move[0].mF] !== 0) return true;
     }else{      //black turn
-        if(move_direction.mR < 0) return true;
-        if(move_distance.mR > 2) return true;
-        if(move_distance.mR == 1) return false;
-        if(move_distance.mR == 2 && move[0].mR == 1 && game_board[2][move[0].mF] == 0) return false;
-        return true;
+        if(move_direction.mR < 0 || move_distance.mR > 2) return true;
+        if(move_distance.mR === 2 && move[0].mR !== 1 && game_board[2][move[0].mF] !== 0) return true;
     }
+    return false;
 }
 
 window.onload = ()=>{
