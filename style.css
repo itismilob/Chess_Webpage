@@ -15,6 +15,7 @@ body{
 
 }
 
+/*  game board  */
 .chess_board{
     width: 410px;
     height: 410px;
@@ -66,6 +67,13 @@ body{
 .file_line{
     display: flex;
 }
+.path{
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: darkgray;
+}
+/*  game board  */
 
 .info{
     width: 200px;

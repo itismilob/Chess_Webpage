@@ -18,6 +18,7 @@ let turn = true;
 let isMoved = false;
 let isTake = false;
 let isCheck = false;
+let isSelected = false;
 
 // make this to class array
 let game_board = [
@@ -31,6 +32,7 @@ let game_board = [
     [5,4,3,2,1,3,4,5],
 ];
 
+
 class board_cell{
     constructor(index, x, y, value) {
         this.index = index;
@@ -38,10 +40,45 @@ class board_cell{
         this.y = y;
         this.value = value;
         this.piece = piece_code[value % 10];
-        this.piece_type = piece_type(this.piece);
+        this.type = piece_type(this.piece);
+        if(value > 10) this.color = "black";
+        else if(value === 0) return;
+        else this.color = "white";
+        console.log(this.color);
+    }
+    get_path(){
+        return this.type.get_path(this.x, this.y, this.color);
+    }
+    check_move(){
+        return;
     }
 }
 
+class piece_Pawn{
+    get_path(row, col, color){
+        if(color === "white"){
+            console.log(row);
+            if(row === 6){
+                return [[row-1,col],[row-2,col]];
+            }else{
+                return [[row-1,col]];
+            }
+        }else{
+            console.log(row);
+        }
+    }
+    check_move(){
+        if(move_distance.mF !== 0) return true;
+        if(turn){   //white
+            if(move_direction.mR > 0 || move_distance.mR > 2) return true;
+            if(move_distance.mR === 2 && move[0].mR !== 6 && game_board[5][move[0].mF] !== 0) return true;
+        }else{      //black turn
+            if(move_direction.mR < 0 || move_distance.mR > 2) return true;
+            if(move_distance.mR === 2 && move[0].mR !== 1 && game_board[2][move[0].mF] !== 0) return true;
+        }
+        return false;
+    }
+}
 class piece_Rook{
     check_move(){
         if(game_board[move[1].mR][move[1].mF] !== 0) return true;
@@ -349,21 +386,6 @@ class piece_King{
         return false;
     }
 }
-class piece_Pawn{
-    check_move(){
-        if(move_distance.mF !== 0) return true;
-        if(turn){   //white
-            if(move_direction.mR > 0 || move_distance.mR > 2) return true;
-            if(move_distance.mR === 2 && move[0].mR !== 6 && game_board[5][move[0].mF] !== 0) return true;
-        }else{      //black turn
-            if(move_direction.mR < 0 || move_distance.mR > 2) return true;
-            if(move_distance.mR === 2 && move[0].mR !== 1 && game_board[2][move[0].mF] !== 0) return true;
-        }
-        return false;
-    }
-}
-
-//const piece_code = ['','K','Q','B','N','R','P'];
 
 function piece_type(piece){
     if (piece === 'K') {
@@ -386,14 +408,6 @@ game_board.forEach((line,x)=>{
         game_board[x][y] = new board_cell(x*8+y, x, y, game_board[x][y]);
     });
 });
-
-function find_cell_by_index(index){
-    for(var i of game_board){
-        for(var j of i){
-            if(j.index === index) return j;
-        }
-    }
-}
 
 function add_table() {
     let temp_table = "";
@@ -434,14 +448,23 @@ function update_notation_table(){
     }
 }
 
+function find_cell_by_index(index){
+    for(let i of game_board){
+        for(let j of i){
+            if(j.index === index) return j;
+        }
+    }
+}
 function update_chess_board(){
-    cells.forEach((cell,i)=>{
+    cells.forEach((cell,i)=> {
         let index = find_cell_by_index(i).value;
 
         // change to image
-        if(index > 10){
-            cell.innerHTML = `${piece_code[index-10]}`;
+        if (index > 10) {
+            cell.innerHTML = `${piece_code[index - 10]}`;
             cell.style.color = "black";
+        }else if(index === 0){
+            cell.innerHTML = '';
         }else{
             cell.innerHTML = `${piece_code[index]}`;
             cell.style.color = "white";
@@ -449,23 +472,37 @@ function update_chess_board(){
     });
 }
 
+function show_path(cell){
+    let path_list = cell.get_path();
+    path_list.forEach((path)=>{
+        cells[game_board[path[0]][path[1]].index].innerHTML = "<div class='path'></div>";
+    });
 
-
-
-
-
+}
 
 function add_piece_event(){
     cells.forEach((cell,i)=>{
         cell.addEventListener("click",()=>{
-            move = [{mR:parseInt(i%8), mF:parseInt(i/8)}];
-            move_piece = piece_code[game_board[move[0].mR][move[0].mF]%10];
-            console.log(move_piece);
+            if(isSelected){
+                isSelected = false;
+                move.push({mR:parseInt(i/8), mF:parseInt(i%8)});
+                move_direction = {mR:move[1].mR - move[0].mR, mF:move[1].mF - move[0].mF};
+                move_distance = {mR:Math.abs(move_direction.mR), mF:Math.abs(move_direction.mF)};
+
+            }else{
+                isSelected = true;
+                update_chess_board();
+                move = [{mR:parseInt(i/8), mF:parseInt(i%8)}];
+                let select = game_board[move[0].mR][move[0].mF];
+                move_piece = select.piece;
+
+                show_path(select);
+            }
         });
 
         cell.addEventListener("dragstart",()=>{
-            move = [{mR:parseInt(i%8), mF:parseInt(i/8)}];
-            move_piece = game_board[move[0].mR][move[0].mF];
+            move = [{mR:parseInt(i/8), mF:parseInt(i%8)}];
+            move_piece = game_board[move[0].mR][move[0].mF].piece;
             isMoved = false;
         });
 
@@ -479,19 +516,19 @@ function add_piece_event(){
             isMoved = true;
             isTake = false;
 
-            move.push({mR:parseInt(i%8), mF:parseInt(i/8)});
+            move.push({mR:parseInt(i/8), mF:parseInt(i%8)});
             move_direction = {mR:move[1].mR - move[0].mR, mF:move[1].mF - move[0].mF};
             move_distance = {mR:Math.abs(move_direction.mR), mF:Math.abs(move_direction.mF)};
 
             // not piece
             if(move_piece === 0) return;
-            // not move
-            if(move[0].mR === move[1].mR && move[0].mF === move[1].mF) return;
             // not turn
             if((turn && move_piece > 10) || (!turn && move_piece < 10)){
                 console.log("it's not your turn");
                 return;
             }
+            // not move
+            if(move[0].mR === move[1].mR && move[0].mF === move[1].mF) return;
             // not empty -> enemy take
             if(turn && game_board[move[1].mR][move[1].mF] > 10){    //white takes black
                 isTake = true;
