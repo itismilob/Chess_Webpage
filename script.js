@@ -19,6 +19,7 @@ let isMoved = false;
 let isTake = false;
 let isCheck = false;
 
+// make this to class array
 let game_board = [
     [15,14,13,12,11,13,14,15],
     [16,16,16,16,16,16,16,16],
@@ -30,13 +31,376 @@ let game_board = [
     [5,4,3,2,1,3,4,5],
 ];
 
-// add game table
+class board_cell{
+    constructor(index, x, y, value) {
+        this.index = index;
+        this.x = x;
+        this.y = y;
+        this.value = value;
+        this.piece = piece_code[value % 10];
+        this.piece_type = piece_type(this.piece);
+    }
+}
+
+class piece_Rook{
+    check_move(){
+        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+        if(!(move_distance.mR === 0 || move_distance.mF === 0)) return true;
+        if(move_distance.mR === 1 || move_distance.mF === 1) return false;
+
+        if(move_distance.mR > move_distance.mF){    //rank move
+            for(let i=1;i<move_distance.mR;i++){
+                if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
+                if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
+            }
+        }else{                                      //file move
+            for(let i=1;i<move_distance.mF;i++){
+                if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
+                if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
+            }
+        }
+        return false;
+    }
+}
+class piece_Knight{
+    check_move(){
+    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+    return !((move_distance.mR === 1 && move_distance.mF === 2) || (move_distance.mR === 2 && move_distance.mF === 1));
+}
+
+}
+class piece_Bishop{
+    check_move(){
+        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+        if(!(move_distance.mR === move_distance.mF)) return true;
+        if(move_distance.mR === 1 && move_distance.mF === 1) return false;
+
+        if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
+            for(let i=1;i<move_distance.mR;i++){
+                if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
+            }
+        }
+        if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
+            for(let i=1;i<move_distance.mR;i++){
+                if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
+            }
+        }
+        if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
+            for(let i=1;i<move_distance.mR;i++){
+                if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
+            }
+        }
+        if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
+            for(let i=1;i<move_distance.mR;i++){
+                if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
+            }
+        }
+    }
+}
+class piece_Queen{
+    check_move(){
+        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+        if(!(move_distance.mR === 0 || move_distance.mF === 0) && !(move_distance.mR === move_distance.mF)) return true;
+
+        //rook move
+        if(move_distance.mR === 0 || move_distance.mF === 0){
+            if(move_distance.mR === 1 || move_distance.mF === 1) return false;
+            if(move_distance.mR > move_distance.mF){    //rank move
+                for(let i=1;i<move_distance.mR;i++){
+                    if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
+                    if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
+                }
+            }else{                                      //file move
+                for(let i=1;i<move_distance.mF;i++){
+                    if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
+                    if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
+                }
+            }
+        }
+
+        //bishop move
+        if(move_distance.mR === move_distance.mF){
+            if(move_distance.mR === 1 && move_distance.mF === 1) return false;
+            if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
+                for(let i=1;i<move_distance.mR;i++){
+                    if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
+                }
+            }
+            if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
+                for(let i=1;i<move_distance.mR;i++){
+                    if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
+                }
+            }
+            if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
+                for(let i=1;i<move_distance.mR;i++){
+                    if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
+                }
+            }
+            if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
+                for(let i=1;i<move_distance.mR;i++){
+                    if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+class piece_King{
+    check_move(){
+        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
+        if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
+
+        //check can move
+        let diagonal_distance = [];
+        diagonal_distance.push(check_diagonal_distance(move[1].mR, move[1].mF));
+        diagonal_distance.push(check_diagonal_distance(move[1].mR, 7-move[1].mF));
+        diagonal_distance.push(check_diagonal_distance(7-move[1].mR, move[1].mF));
+        diagonal_distance.push(check_diagonal_distance(7-move[1].mR, 7-move[1].mF));
+
+        //  -king-
+        if(turn){
+            if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 11) return true;
+            if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 11) return true;
+            if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 11) return true;
+
+            if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 11) return true;
+            if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 11) return true;
+
+            if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 11) return true;
+            if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 11) return true;
+            if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 11) return true;
+        }else{
+            if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 1) return true;
+            if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 1) return true;
+            if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 1) return true;
+
+            if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 1) return true;
+            if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 1) return true;
+
+            if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 1) return true;
+            if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 1) return true;
+            if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 1) return true;
+        }
+        //  -king-
+
+        //  -queen-
+        //  queen rook
+        //  up
+        for(let i=1;i<=move[1].mR;i++){
+            if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
+            if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
+            else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
+            else break;
+        }
+        //  down
+        for(let i=1;i<8-move[1].mR;i++){
+            if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
+            if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
+            else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
+            else break;
+        }
+        //  left
+        for(let i=1;i<=move[1].mF;i++){
+            if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
+            if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
+            else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
+            else break;
+        }
+        //  right
+        for(let i=1;i<8-move[1].mF;i++){
+            if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
+            if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
+            else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
+            else break;
+        }
+        //  queen rook
+
+        //  queen bishop
+        //  up left -1, -1
+        for(let i=1;i<=diagonal_distance[0];i++){
+            if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
+            if(turn && game_board[move[1].mR-i][move[1].mF-i] === 12) return true;
+            else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 2) return true;
+            else break;
+        }
+        //  up right -1, +1
+        for(let i=1;i<=diagonal_distance[1];i++){
+            if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
+            if(turn && game_board[move[1].mR-i][move[1].mF+i] === 12) return true;
+            else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 2) return true;
+            else break;
+        }
+        //  down left +1, -1
+        for(let i=1;i<=diagonal_distance[2];i++){
+            if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
+            if(turn && game_board[move[1].mR+i][move[1].mF-i] === 12) return true;
+            else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 2) return true;
+            else break;
+        }
+        //  down right +1, +1
+        for(let i=1;i<=diagonal_distance[3];i++){
+            if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
+            if(turn && game_board[move[1].mR+i][move[1].mF+i] === 12) return true;
+            else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 2) return true;
+            else break;
+        }
+        //  queen bishop
+        //  -queen-
+
+        //  -rook-
+        //  up
+        for(let i=1;i<=move[1].mR;i++){
+            if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
+            if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
+            else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
+            else break;
+        }
+        //  down
+        for(let i=1;i<8-move[1].mR;i++){
+            if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
+            if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
+            else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
+            else break;
+        }
+        //  left
+        for(let i=1;i<=move[1].mF;i++){
+            if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
+            if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
+            else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
+            else break;
+        }
+        //  right
+        for(let i=1;i<8-move[1].mF;i++){
+            if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
+            if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
+            else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
+            else break;
+        }
+        //  -rook-
+
+        //  -bishop-
+        //  up left -1, -1
+        for(let i=1;i<=diagonal_distance[0];i++){
+            if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
+            if(turn && game_board[move[1].mR-i][move[1].mF-i] === 13) return true;
+            else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 3) return true;
+            else break;
+        }
+        //  up right -1, +1
+        for(let i=1;i<=diagonal_distance[1];i++){
+            if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
+            if(turn && game_board[move[1].mR-i][move[1].mF+i] === 13) return true;
+            else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 3) return true;
+            else break;
+        }
+        //  down left +1, -1
+        for(let i=1;i<=diagonal_distance[2];i++){
+            if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
+            if(turn && game_board[move[1].mR+i][move[1].mF-i] === 13) return true;
+            else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 3) return true;
+            else break;
+        }
+        //  down right +1, +1
+        for(let i=1;i<=diagonal_distance[3];i++){
+            if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
+            if(turn && game_board[move[1].mR+i][move[1].mF+i] === 13) return true;
+            else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 3) return true;
+            else break;
+        }
+        //  -bishop-
+
+        //  -knight-
+        if(turn){
+            //top
+            if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 14) return true;
+            if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 14) return true;
+            //left
+            if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 14) return true;
+            if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 14) return true;
+            //right
+            if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 14) return true;
+            if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 14) return true;
+            //bottom
+            if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 14) return true;
+            if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 14) return true;
+        }else{
+            //top
+            if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 4) return true;
+            if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 4) return true;
+            //left
+            if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 4) return true;
+            if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 4) return true;
+            //right
+            if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 4) return true;
+            if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 4) return true;
+            //bottom
+            if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 4) return true;
+            if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 4) return true;
+        }
+        //  -knight-
+
+        //  -pawn-
+        if(turn){   //white
+            if(game_board[move[1].mR-1][move[1].mF-1] === 16 || game_board[move[1].mR-1][move[1].mF+1] === 16) return true;
+        }else{      //black
+            if(game_board[move[1].mR+1][move[1].mF-1] === 6 || game_board[move[1].mR+1][move[1].mF+1] === 6) return true;
+        }
+        //  -pawn-
+        return false;
+    }
+}
+class piece_Pawn{
+    check_move(){
+        if(move_distance.mF !== 0) return true;
+        if(turn){   //white
+            if(move_direction.mR > 0 || move_distance.mR > 2) return true;
+            if(move_distance.mR === 2 && move[0].mR !== 6 && game_board[5][move[0].mF] !== 0) return true;
+        }else{      //black turn
+            if(move_direction.mR < 0 || move_distance.mR > 2) return true;
+            if(move_distance.mR === 2 && move[0].mR !== 1 && game_board[2][move[0].mF] !== 0) return true;
+        }
+        return false;
+    }
+}
+
+//const piece_code = ['','K','Q','B','N','R','P'];
+
+function piece_type(piece){
+    if (piece === 'K') {
+        return new piece_King;
+    } else if (piece === 'Q') {
+        return new piece_Queen();
+    } else if (piece === 'B') {
+        return new piece_Bishop();
+    } else if (piece === 'N') {
+        return new piece_Knight();
+    } else if (piece === 'R') {
+        return new piece_Rook();
+    } else if (piece === 'P') {
+        return new piece_Pawn();
+    }
+}
+
+game_board.forEach((line,x)=>{
+    line.forEach((cell,y)=>{
+        game_board[x][y] = new board_cell(x*8+y, x, y, game_board[x][y]);
+    });
+});
+
+function find_cell_by_index(index){
+    for(var i of game_board){
+        for(var j of i){
+            if(j.index === index) return j;
+        }
+    }
+}
+
 function add_table() {
     let temp_table = "";
     let temp_color = true;
-    for (let i = 0; i < 8; i++) {
+    for (let rows = 0; rows < 8; rows++) {
         let line = "<div class='line'>";
-        for (let j = 0; j < 8; j++) {
+        for (let cols = 0; cols < 8; cols++) {
             if (temp_color) {
                 line += "<div class='cell white' draggable='true'></div>";
             } else {
@@ -45,18 +409,17 @@ function add_table() {
             temp_color = !temp_color;
         }
         temp_color = !temp_color;
-        line += `<div class='file'>${file_char[i]}</div></div>`;
+        line += `<div class='rank'>${Math.abs(rows-8)}</div></div>`;
         temp_table += line;
     }
-    let rank = "<div>";
-    for (let i = 8; i > 0; i--) {
-        rank += `<div class='rank'>${i}</div>`;
+    let rank = "<div class='file_line'>";
+    for (let i=0;i<8;i++) {
+        rank += `<div class='file'>${file_char[i]}</div>`;
     }
     temp_table += rank + "</div>";
     chess_board_E.innerHTML = temp_table;
     cells = document.querySelectorAll(".cell");
 }
-// add game table
 
 function update_notation_table(){
     notation_table_E.innerHTML = "";
@@ -73,7 +436,7 @@ function update_notation_table(){
 
 function update_chess_board(){
     cells.forEach((cell,i)=>{
-        let index = game_board[i%8][parseInt(i/8)];
+        let index = find_cell_by_index(i).value;
 
         // change to image
         if(index > 10){
@@ -85,6 +448,12 @@ function update_chess_board(){
         }
     });
 }
+
+
+
+
+
+
 
 function add_piece_event(){
     cells.forEach((cell,i)=>{
@@ -244,324 +613,13 @@ function add_piece_event(){
     });
 }
 
-function check_rook(){
-    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-    if(!(move_distance.mR === 0 || move_distance.mF === 0)) return true;
-    if(move_distance.mR === 1 || move_distance.mF === 1) return false;
-
-    if(move_distance.mR > move_distance.mF){    //rank move
-        for(let i=1;i<move_distance.mR;i++){
-            if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
-            if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
-        }
-    }else{                                      //file move
-        for(let i=1;i<move_distance.mF;i++){
-            if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
-            if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
-        }
-    }
-    return false;
-}
-
-function check_knight(){
-    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-    return !((move_distance.mR === 1 && move_distance.mF === 2) || (move_distance.mR === 2 && move_distance.mF === 1));
-}
-
-function check_bishop(){
-    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-    if(!(move_distance.mR === move_distance.mF)) return true;
-    if(move_distance.mR === 1 && move_distance.mF === 1) return false;
-
-    if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
-        for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
-        }
-    }
-    if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
-        for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
-        }
-    }
-    if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
-        for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
-        }
-    }
-    if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
-        for(let i=1;i<move_distance.mR;i++){
-            if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
-        }
-    }
-}
-
-function check_queen(){
-    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-    if(!(move_distance.mR === 0 || move_distance.mF === 0) && !(move_distance.mR === move_distance.mF)) return true;
-
-    //rook move
-    if(move_distance.mR === 0 || move_distance.mF === 0){
-        if(move_distance.mR === 1 || move_distance.mF === 1) return false;
-        if(move_distance.mR > move_distance.mF){    //rank move
-            for(let i=1;i<move_distance.mR;i++){
-                if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
-                if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
-            }
-        }else{                                      //file move
-            for(let i=1;i<move_distance.mF;i++){
-                if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
-                if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
-            }
-        }
-    }
-
-    //bishop move
-    if(move_distance.mR === move_distance.mF){
-        if(move_distance.mR === 1 && move_distance.mF === 1) return false;
-        if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
-            }
-        }
-        if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
-            }
-        }
-        if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
-            }
-        }
-        if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
-            }
-        }
-    }
-    return false;
-}
-
 
 function check_diagonal_distance(a,b){
     if(a < b) return a;
     else if(a > b) return b;
     else return a;
 }
-function check_king(){
-    if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-    if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
 
-    //check can move
-    let diagonal_distance = [];
-    diagonal_distance.push(check_diagonal_distance(move[1].mR, move[1].mF));
-    diagonal_distance.push(check_diagonal_distance(move[1].mR, 7-move[1].mF));
-    diagonal_distance.push(check_diagonal_distance(7-move[1].mR, move[1].mF));
-    diagonal_distance.push(check_diagonal_distance(7-move[1].mR, 7-move[1].mF));
-
-    //  -king-
-    if(turn){
-        if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 11) return true;
-        if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 11) return true;
-        if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 11) return true;
-
-        if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 11) return true;
-        if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 11) return true;
-
-        if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 11) return true;
-        if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 11) return true;
-        if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 11) return true;
-    }else{
-        if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 1) return true;
-        if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 1) return true;
-        if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 1) return true;
-
-        if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 1) return true;
-        if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 1) return true;
-
-        if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 1) return true;
-        if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 1) return true;
-        if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 1) return true;
-    }
-    //  -king-
-
-    //  -queen-
-    //  queen rook
-    //  up
-    for(let i=1;i<=move[1].mR;i++){
-        if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
-        else break;
-    }
-    //  down
-    for(let i=1;i<8-move[1].mR;i++){
-        if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
-        else break;
-    }
-    //  left
-    for(let i=1;i<=move[1].mF;i++){
-        if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
-        if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
-        else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
-        else break;
-    }
-    //  right
-    for(let i=1;i<8-move[1].mF;i++){
-        if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
-        if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
-        else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
-        else break;
-    }
-    //  queen rook
-
-    //  queen bishop
-    //  up left -1, -1
-    for(let i=1;i<=diagonal_distance[0];i++){
-        if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF-i] === 12) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 2) return true;
-        else break;
-    }
-    //  up right -1, +1
-    for(let i=1;i<=diagonal_distance[1];i++){
-        if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF+i] === 12) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 2) return true;
-        else break;
-    }
-    //  down left +1, -1
-    for(let i=1;i<=diagonal_distance[2];i++){
-        if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF-i] === 12) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 2) return true;
-        else break;
-    }
-    //  down right +1, +1
-    for(let i=1;i<=diagonal_distance[3];i++){
-        if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF+i] === 12) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 2) return true;
-        else break;
-    }
-    //  queen bishop
-    //  -queen-
-
-    //  -rook-
-    //  up
-    for(let i=1;i<=move[1].mR;i++){
-        if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
-        else break;
-    }
-    //  down
-    for(let i=1;i<8-move[1].mR;i++){
-        if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
-        else break;
-    }
-    //  left
-    for(let i=1;i<=move[1].mF;i++){
-        if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
-        if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
-        else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
-        else break;
-    }
-    //  right
-    for(let i=1;i<8-move[1].mF;i++){
-        if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
-        if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
-        else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
-        else break;
-    }
-    //  -rook-
-
-    //  -bishop-
-    //  up left -1, -1
-    for(let i=1;i<=diagonal_distance[0];i++){
-        if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF-i] === 13) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 3) return true;
-        else break;
-    }
-    //  up right -1, +1
-    for(let i=1;i<=diagonal_distance[1];i++){
-        if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
-        if(turn && game_board[move[1].mR-i][move[1].mF+i] === 13) return true;
-        else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 3) return true;
-        else break;
-    }
-    //  down left +1, -1
-    for(let i=1;i<=diagonal_distance[2];i++){
-        if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF-i] === 13) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 3) return true;
-        else break;
-    }
-    //  down right +1, +1
-    for(let i=1;i<=diagonal_distance[3];i++){
-        if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
-        if(turn && game_board[move[1].mR+i][move[1].mF+i] === 13) return true;
-        else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 3) return true;
-        else break;
-    }
-    //  -bishop-
-
-    //  -knight-
-    if(turn){
-        //top
-        if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 14) return true;
-        if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 14) return true;
-        //left
-        if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 14) return true;
-        if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 14) return true;
-        //right
-        if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 14) return true;
-        if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 14) return true;
-        //bottom
-        if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 14) return true;
-        if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 14) return true;
-    }else{
-        //top
-        if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 4) return true;
-        if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 4) return true;
-        //left
-        if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 4) return true;
-        if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 4) return true;
-        //right
-        if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 4) return true;
-        if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 4) return true;
-        //bottom
-        if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 4) return true;
-        if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 4) return true;
-    }
-    //  -knight-
-
-    //  -pawn-
-    if(turn){   //white
-        if(game_board[move[1].mR-1][move[1].mF-1] === 16 || game_board[move[1].mR-1][move[1].mF+1] === 16) return true;
-    }else{      //black
-        if(game_board[move[1].mR+1][move[1].mF-1] === 6 || game_board[move[1].mR+1][move[1].mF+1] === 6) return true;
-    }
-    //  -pawn-
-    return false;
-}
-
-function check_pawn(){
-    if(move_distance.mF !== 0) return true;
-    if(turn){   //white
-        if(move_direction.mR > 0 || move_distance.mR > 2) return true;
-        if(move_distance.mR === 2 && move[0].mR !== 6 && game_board[5][move[0].mF] !== 0) return true;
-    }else{      //black turn
-        if(move_direction.mR < 0 || move_distance.mR > 2) return true;
-        if(move_distance.mR === 2 && move[0].mR !== 1 && game_board[2][move[0].mF] !== 0) return true;
-    }
-    return false;
-}
 
 window.onload = ()=>{
     add_table();
