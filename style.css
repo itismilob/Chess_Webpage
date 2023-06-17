@@ -73,6 +73,16 @@ body{
     border-radius: 50%;
     background: darkgray;
 }
+.take{
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 5px solid rgba(255,0,0,0.5);
+    border-radius: 50%;
+}
 /*  game board  */
 
 .info{
