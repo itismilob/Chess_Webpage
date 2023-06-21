@@ -21,10 +21,18 @@ let isCheck = false;
 let isSelected = false;
 let select;
 let selectedPath = [];
-
 let last_move;
 
-// make this to class array
+// let game_board = [
+//     [15,14,13,12,11,13,14,15],
+//     [16,16,16,16,16,16,16,16],
+//     [0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0],
+//     [6,6,6,6,6,6,6,6],
+//     [5,4,3,2,1,3,4,5],
+// ];
 let game_board = [
     [15,14,13,12,11,13,14,15],
     [16,16,16,16,16,16,16,16],
@@ -35,18 +43,6 @@ let game_board = [
     [6,6,6,6,6,6,6,6],
     [5,4,3,2,1,3,4,5],
 ];
-
-// let game_board = [
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,13,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,6,0,0,0,0],
-//     [0,0,0,0,0,1,0,0],
-// ];
-
 
 class board_cell{
     constructor(index, x, y, value) {
@@ -66,26 +62,9 @@ class board_cell{
         else this.color = "white";
     }
     get_path(){
-        // if(isCheck){
-        //     console.log(10);
-        //     return this.type.get_path(this.x, this.y, this.color);
-        // }else{
-        //     let value = this.value;
-        //     game_board[this.x][this.y].value = 0;
-        //     let temp = king_check(this.color);
-        //     game_board[this.x][this.y].value = value;
-        //
-        //     if(temp){
-        //         console.log("can't move");
-        //         return false;
-        //     }else{
-        //
-        //     }
-        // }
         return this.type.get_path(this.x, this.y, this.color);
     }
 }
-
 class piece_Pawn{
     get_path(x, y, color){
         let this_path = [];
@@ -93,10 +72,6 @@ class piece_Pawn{
             //move
             if(x === 6 && game_board[x-1][y].value === 0 && game_board[x-2][y].value === 0){
                 this_path = [[x-1,y], [x-2,y]];
-            }else if(x === 1 && game_board[x-1][y].value === 0){
-                this_path = [[x-1,y]];
-                // promotion
-                console.log("promotion");
             }else if(game_board[x-1][y].value === 0){
                 this_path = [[x-1,y]];
             }
@@ -116,16 +91,12 @@ class piece_Pawn{
             }
 
             if(isCheck){
-                this_path = if_move_uncheck("white", this_path);
+                this_path = if_move_uncheck("white", 6, [x, y], this_path);
             }
 
         }else{
             if(x === 1 && game_board[x+1][y].value === 0 && game_board[x+2][y].value === 0){
                 this_path = [[x+1,y], [x+2,y]];
-            }else if(x === 6 && game_board[x-1][y].value === 0){
-                this_path = [[x+1,y]];
-                // promotion
-                console.log("promotion");
             }else if(game_board[x+1][y].value === 0){
                 this_path = [[x+1,y]];
             }
@@ -145,7 +116,7 @@ class piece_Pawn{
             }
 
             if(isCheck){
-                this_path = if_move_uncheck("black", this_path);
+                this_path = if_move_uncheck("black", 16, [x, y], this_path);
             }
         }
         return this_path;
@@ -181,7 +152,7 @@ class piece_Knight{
             if(x < 6 && y < 7 && (game_board[x+2][y+1].value > 10 || game_board[x+2][y+1].value === 0)) {this_path.push([x+2,y+1]);}
 
             if(isCheck){
-                this_path = if_move_uncheck("black", this_path);
+                this_path = if_move_uncheck("white", 4, [x,y], this_path);
             }
         }else{
             //  top
@@ -198,7 +169,7 @@ class piece_Knight{
             if(x < 6 && y < 7 && game_board[x+2][y+1].value < 10) {this_path.push([x+2,y+1]);}
 
             if(isCheck){
-                this_path = if_move_uncheck("white", this_path);
+                this_path = if_move_uncheck("black", 14, [x,y], this_path);
             }
         }
 
@@ -210,16 +181,21 @@ class piece_Knight{
     }
 }
 class piece_Rook{
-    get_path(x, y){
+    get_path(x, y, color){
         let this_path = [];
         // up
         if(x > 0){
             for(let i=1;i<=x;i++){
                 if(game_board[x-i][y].value === 0){
                     this_path.push([x-i,y]);
-                }else{
+                }else if(color === "white" && game_board[x-i][y].value > 10){
+                    this_path.push([x-i,y]);
+                    break;
+                }else if(color === "black" && game_board[x-i][y].value < 10){
+                    this_path.push([x-i,y]);
                     break;
                 }
+                if(game_board[x-i][y].value !== 0) break;
             }
         }
         // down
@@ -227,9 +203,14 @@ class piece_Rook{
             for(let i=1;i<=7-x;i++){
                 if(game_board[x+i][y].value === 0){
                     this_path.push([x+i,y]);
-                }else{
+                }else if(color === "white" && game_board[x+i][y].value > 10){
+                    this_path.push([x+i,y]);
+                    break;
+                }else if(color === "black" && game_board[x+i][y].value < 10){
+                    this_path.push([x+i,y]);
                     break;
                 }
+                if(game_board[x+i][y].value !== 0) break;
             }
         }
         // left
@@ -237,9 +218,14 @@ class piece_Rook{
             for(let i=1;i<=y;i++){
                 if(game_board[x][y-i].value === 0){
                     this_path.push([x,y-i]);
-                }else{
+                }else if(color === "white" && game_board[x][y-i].value > 10){
+                    this_path.push([x,y-i]);
+                    break;
+                }else if(color === "black" && game_board[x][y-i].value < 10){
+                    this_path.push([x,y-i]);
                     break;
                 }
+                if(game_board[x][y-i].value !== 0) break;
             }
         }
         // right
@@ -247,10 +233,21 @@ class piece_Rook{
             for(let i=1;i<=7-y;i++){
                 if(game_board[x][y+i].value === 0){
                     this_path.push([x,y+i]);
-                }else{
+                }else if(color === "white" && game_board[x][y+i].value > 10){
+                    this_path.push([x,y+i]);
+                    break;
+                }else if(color === "black" && game_board[x][y+i].value < 10){
+                    this_path.push([x,y+i]);
                     break;
                 }
+                if(game_board[x][y+i].value !== 0) break;
             }
+        }
+        if(color === "white" && isCheck){
+            this_path = if_move_uncheck("white", 5, [x,y], this_path);
+        }
+        if(color === "black" && isCheck){
+            this_path = if_move_uncheck("black", 15, [x,y], this_path);
         }
         return this_path;
     }
@@ -274,6 +271,74 @@ class piece_Rook{
     }
 }
 class piece_Bishop{
+    get_path(x, y, color){
+        let this_path = [];
+        let diagonal_distance = [];
+        diagonal_distance.push(check_diagonal_distance(x, y));
+        diagonal_distance.push(check_diagonal_distance(x, 7-y));
+        diagonal_distance.push(check_diagonal_distance(7-x, y));
+        diagonal_distance.push(check_diagonal_distance(7-x, 7-y));
+
+        //  up left -1, -1
+        for(let i = 1; i <= diagonal_distance[0]; i++) {
+            if(game_board[x-i][y-i].value === 0){
+                this_path.push([x-i,y-i]);
+            }else if(color === "white" && game_board[x-i][y-i].value > 10){
+                this_path.push([x-i,y-i]);
+                break;
+            }else if(color === "black" && game_board[x-i][y-i].value < 10){
+                this_path.push([x-i,y-i]);
+                break;
+            }
+            if(game_board[x-i][y-i].value !== 0) break;
+        }
+        //  up right -1, +1
+        for (let i = 1; i <= diagonal_distance[1]; i++) {
+            if(game_board[x-i][y+i].value === 0){
+                this_path.push([x-i,y+i]);
+            }else if(color === "white" && game_board[x-i][y+i].value > 10){
+                this_path.push([x-i,y+i]);
+                break;
+            }else if(color === "black" && game_board[x-i][y+i].value < 10){
+                this_path.push([x-i,y+i]);
+                break;
+            }
+            if(game_board[x-i][y+i].value !== 0) break;
+        }
+        //  down left +1, -1
+        for (let i = 1; i <= diagonal_distance[2]; i++) {
+            if(game_board[x+i][y-i].value === 0){
+                this_path.push([x+i,y-i]);
+            }else if(color === "white" && game_board[x+i][y-i].value > 10){
+                this_path.push([x+i,y-i]);
+                break;
+            }else if(color === "black" && game_board[x+i][y-i].value < 10){
+                this_path.push([x+i,y-i]);
+                break;
+            }
+            if(game_board[x+i][y-i].value !== 0) break;
+        }
+        //  down right +1, +1
+        for (let i = 1; i <= diagonal_distance[3]; i++) {
+            if(game_board[x+i][y+i].value === 0){
+                this_path.push([x+i,y+i]);
+            }else if(color === "white" && game_board[x+i][y+i].value > 10){
+                this_path.push([x+i,y+i]);
+                break;
+            }else if(color === "black" && game_board[x+i][y+i].value < 10){
+                this_path.push([x+i,y+i]);
+                break;
+            }
+            if(game_board[x+i][y+i].value !== 0) break;
+        }
+        if(color === "white" && isCheck){
+            this_path = if_move_uncheck("white", 3, [x,y], this_path);
+        }
+        if(color === "black" && isCheck){
+            this_path = if_move_uncheck("black", 13, [x,y], this_path);
+        }
+        return this_path;
+    }
     check_move(){
         if(game_board[move[1].mR][move[1].mF] !== 0) return true;
         if(!(move_distance.mR === move_distance.mF)) return true;
@@ -302,6 +367,136 @@ class piece_Bishop{
     }
 }
 class piece_Queen{
+    get_path(x, y, color){
+        let this_path = [];let diagonal_distance = [];
+        diagonal_distance.push(check_diagonal_distance(x, y));
+        diagonal_distance.push(check_diagonal_distance(x, 7-y));
+        diagonal_distance.push(check_diagonal_distance(7-x, y));
+        diagonal_distance.push(check_diagonal_distance(7-x, 7-y));
+
+        // Bishop move
+        //  up left -1, -1
+        for(let i = 1; i <= diagonal_distance[0]; i++) {
+            if(game_board[x-i][y-i].value === 0){
+                this_path.push([x-i,y-i]);
+            }else if(color === "white" && game_board[x-i][y-i].value > 10){
+                this_path.push([x-i,y-i]);
+                break;
+            }else if(color === "black" && game_board[x-i][y-i].value < 10){
+                this_path.push([x-i,y-i]);
+                break;
+            }
+            if(game_board[x-i][y-i].value !== 0) break;
+        }
+        //  up right -1, +1
+        for (let i = 1; i <= diagonal_distance[1]; i++) {
+            if(game_board[x-i][y+i].value === 0){
+                this_path.push([x-i,y+i]);
+            }else if(color === "white" && game_board[x-i][y+i].value > 10){
+                this_path.push([x-i,y+i]);
+                break;
+            }else if(color === "black" && game_board[x-i][y+i].value < 10){
+                this_path.push([x-i,y+i]);
+                break;
+            }
+            if(game_board[x-i][y+i].value !== 0) break;
+        }
+        //  down left +1, -1
+        for (let i = 1; i <= diagonal_distance[2]; i++) {
+            if(game_board[x+i][y-i].value === 0){
+                this_path.push([x+i,y-i]);
+            }else if(color === "white" && game_board[x+i][y-i].value > 10){
+                this_path.push([x+i,y-i]);
+                break;
+            }else if(color === "black" && game_board[x+i][y-i].value < 10){
+                this_path.push([x+i,y-i]);
+                break;
+            }
+            if(game_board[x+i][y-i].value !== 0) break;
+        }
+        //  down right +1, +1
+        for (let i = 1; i <= diagonal_distance[3]; i++) {
+            if(game_board[x+i][y+i].value === 0){
+                this_path.push([x+i,y+i]);
+            }else if(color === "white" && game_board[x+i][y+i].value > 10){
+                this_path.push([x+i,y+i]);
+                break;
+            }else if(color === "black" && game_board[x+i][y+i].value < 10){
+                this_path.push([x+i,y+i]);
+                break;
+            }
+            if(game_board[x+i][y+i].value !== 0) break;
+        }
+
+        // Rook move
+        //  up
+        if(x > 0){
+            for(let i=1;i<=x;i++){
+                if(game_board[x-i][y].value === 0){
+                    this_path.push([x-i,y]);
+                }else if(color === "white" && game_board[x-i][y].value > 10){
+                    this_path.push([x-i,y]);
+                    break;
+                }else if(color === "black" && game_board[x-i][y].value < 10){
+                    this_path.push([x-i,y]);
+                    break;
+                }
+                if(game_board[x-i][y].value !== 0) break;
+            }
+        }
+        //  down
+        if(x < 7){
+            for(let i=1;i<=7-x;i++){
+                if(game_board[x+i][y].value === 0){
+                    this_path.push([x+i,y]);
+                }else if(color === "white" && game_board[x+i][y].value > 10){
+                    this_path.push([x+i,y]);
+                    break;
+                }else if(color === "black" && game_board[x+i][y].value < 10){
+                    this_path.push([x+i,y]);
+                    break;
+                }
+                if(game_board[x+i][y].value !== 0) break;
+            }
+        }
+        //  left
+        if(y > 0){
+            for(let i=1;i<=y;i++){
+                if(game_board[x][y-i].value === 0){
+                    this_path.push([x,y-i]);
+                }else if(color === "white" && game_board[x][y-i].value > 10){
+                    this_path.push([x,y-i]);
+                    break;
+                }else if(color === "black" && game_board[x][y-i].value < 10){
+                    this_path.push([x,y-i]);
+                    break;
+                }
+                if(game_board[x][y-i].value !== 0) break;
+            }
+        }
+        //  right
+        if(y < 7){
+            for(let i=1;i<=7-y;i++){
+                if(game_board[x][y+i].value === 0){
+                    this_path.push([x,y+i]);
+                }else if(color === "white" && game_board[x][y+i].value > 10){
+                    this_path.push([x,y+i]);
+                    break;
+                }else if(color === "black" && game_board[x][y+i].value < 10){
+                    this_path.push([x,y+i]);
+                    break;
+                }
+                if(game_board[x][y+i].value !== 0) break;
+            }
+        }
+        if(color === "white" && isCheck){
+            this_path = if_move_uncheck("white", 2, [x,y], this_path);
+        }
+        if(color === "black" && isCheck){
+            this_path = if_move_uncheck("black", 12, [x,y], this_path);
+        }
+        return this_path;
+    }
     check_move(){
         if(game_board[move[1].mR][move[1].mF] !== 0) return true;
         if(!(move_distance.mR === 0 || move_distance.mF === 0) && !(move_distance.mR === move_distance.mF)) return true;
@@ -350,6 +545,80 @@ class piece_Queen{
     }
 }
 class piece_King{
+    get_path(x, y, color){
+        let this_path = [];
+
+        if(color === "white"){
+            // -1 -1
+            if(x>0 && y>0 && (game_board[x-1][y-1].value > 10 || game_board[x-1][y-1].value === 0)){this_path.push([x-1,y-1]);}
+            // -1 0
+            if(x>0 && (game_board[x-1][y].value > 10 || game_board[x-1][y].value === 0)){this_path.push([x-1,y])}
+            // -1 +1
+            if(x>0 && y<7 && (game_board[x-1][y+1].value > 10 || game_board[x-1][y+1].value === 0)){this_path.push([x-1, y+1]);}
+
+            // 0 -1
+            if(y>0 && (game_board[x][y-1].value > 10 || game_board[x][y-1].value === 0)){this_path.push([x,y-1]);}
+            // 0 +1
+            if(y<7 && (game_board[x][y+1].value > 10 || game_board[x][y+1].value === 0)){this_path.push([x,y+1]);}
+
+            // +1 -1
+            if(x<7 && y>0 && (game_board[x+1][y-1].value > 10 || game_board[x+1][y-1].value === 0)){this_path.push([x+1, y-1]);}
+            // +1 0
+            if(x<7 && (game_board[x+1][y].value > 10 || game_board[x+1][y].value === 0)){this_path.push([x+1, y]);}
+            // +1 +1
+            if(x<7 && y<7 && (game_board[x+1][y+1].value > 10 || game_board[x+1][y+1].value === 0)){this_path.push([x+1, y+1]);}
+
+            if(isCheck){
+                this_path = if_move_uncheck("white", 1, [x,y], this_path);
+            }
+        }else{
+            // -1 -1
+            if(x>0 && y>0 && game_board[x-1][y-1].value < 10){this_path.push([x-1,y-1]);}
+            // -1 0
+            if(x>0 && game_board[x-1][y].value < 10){this_path.push([x-1,y])}
+            // -1 +1
+            if(x>0 && y<7 && game_board[x-1][y+1].value < 10){this_path.push([x-1, y+1]);}
+
+            // 0 -1
+            if(y>0 && game_board[x][y-1].value < 10){this_path.push([x,y-1]);}
+            // 0 +1
+            if(y<7 && game_board[x][y+1].value < 10){this_path.push([x,y+1]);}
+
+            // +1 -1
+            if(x<7 && y>0 && game_board[x+1][y-1].value < 10){this_path.push([x+1, y-1]);}
+            // +1 0
+            if(x<7 && game_board[x+1][y].value < 10){this_path.push([x+1, y]);}
+            // +1 +1
+            if(x<7 && y<7 && game_board[x+1][y+1].value < 10){this_path.push([x+1, y+1]);}
+
+            if(isCheck){
+                this_path = if_move_uncheck("black", 11, [x,y], this_path);
+            }
+        }
+
+        let temp_path = [];
+        this_path.forEach((path)=>{
+            let temp_value = game_board[path[0]][path[1]].value;
+            game_board[x][y].value = 0;
+
+            if(color === "white"){
+                game_board[path[0]][path[1]].value = 1;
+                if(!king_check()){
+                    temp_path.push(path);
+                }
+                game_board[x][y].value = 1;
+            }else{
+                game_board[path[0]][path[1]].value = 11;
+                if(!king_check()){
+                    temp_path.push(path);
+                }
+                game_board[x][y].value = 11;
+            }
+            game_board[path[0]][path[1]].value = temp_value;
+        });
+
+        return temp_path;
+    }
     check_move(){
         if(game_board[move[1].mR][move[1].mF] !== 0) return true;
         if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
@@ -581,6 +850,27 @@ function king_check(color){
     diagonal_distance.push(check_diagonal_distance(7-king_cell.x, king_cell.y));
     diagonal_distance.push(check_diagonal_distance(7-king_cell.x, 7-king_cell.y));
 
+    // King check
+    if(color === "white"){
+        if(king_cell.x>0 && king_cell.y>0 && game_board[king_cell.x-1][king_cell.y-1].value === 11){check_piece.push("K");}
+        if(king_cell.x>0 && game_board[king_cell.x-1][king_cell.y].value === 11){check_piece.push("K");}
+        if(king_cell.x>0 && king_cell.y<7 && game_board[king_cell.x-1][king_cell.y+1].value === 11){check_piece.push("K");}
+        if(king_cell.y>0 && game_board[king_cell.x][king_cell.y-1].value === 11){check_piece.push("K");}
+        if(king_cell.y<7 && game_board[king_cell.x][king_cell.y+1].value === 11){check_piece.push("K");}
+        if(king_cell.x<7 && king_cell.y>0 && game_board[king_cell.x+1][king_cell.y-1].value === 11){check_piece.push("K");}
+        if(king_cell.x<7 && game_board[king_cell.x+1][king_cell.y].value === 11){check_piece.push("K");}
+        if(king_cell.x<7 && king_cell.y<7 && game_board[king_cell.x+1][king_cell.y+1].value === 11){check_piece.push("K");}
+    }else{
+        if(king_cell.x>0 && king_cell.y>0 && game_board[king_cell.x-1][king_cell.y-1].value === 1){check_piece.push("K");}
+        if(king_cell.x>0 && game_board[king_cell.x-1][king_cell.y].value === 1){check_piece.push("K");}
+        if(king_cell.x>0 && king_cell.y<7 && game_board[king_cell.x-1][king_cell.y+1].value === 1){check_piece.push("K");}
+        if(king_cell.y>0 && game_board[king_cell.x][king_cell.y-1].value === 1){check_piece.push("K");}
+        if(king_cell.y<7 && game_board[king_cell.x][king_cell.y+1].value === 1){check_piece.push("K");}
+        if(king_cell.x<7 && king_cell.y>0 && game_board[king_cell.x+1][king_cell.y-1].value === 1){check_piece.push("K");}
+        if(king_cell.x<7 && game_board[king_cell.x+1][king_cell.y].value === 1){check_piece.push("K");}
+        if(king_cell.x<7 && king_cell.y<7 && game_board[king_cell.x+1][king_cell.y+1].value === 1){check_piece.push("K");}
+    }
+
     // Pawn check
     if(color === "white"){
         if (king_cell.x > 0 && king_cell.y > 0 && game_board[king_cell.x-1][king_cell.y-1].value === 16) {check_piece.push("P");}
@@ -632,26 +922,37 @@ function king_check(color){
     //  up left -1, -1
     for (let i = 1; i <= diagonal_distance[0]; i++) {
         if (game_board[king_cell.x - i][king_cell.y - i].value === 0) continue;
-        if (color === "whtie" && game_board[king_cell.x-i][king_cell.y-i].value === 13) {check_piece.push("B");}
+        if (color === "white" && game_board[king_cell.x-i][king_cell.y-i].value === 13) {check_piece.push("B");}
         if (color === "black" && game_board[king_cell.x-i][king_cell.y-i].value === 3) {check_piece.push("B");}
+        if (color === "white" && game_board[king_cell.x-i][king_cell.y-i].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x-i][king_cell.y-i].value === 2) {check_piece.push("Q");}
         else break;
     }
     //  up right -1, +1
     for (let i = 1; i <= diagonal_distance[1]; i++) {
         if (game_board[king_cell.x - i][king_cell.y + i].value === 0) continue;
-        if (game_board[king_cell.x - i][king_cell.y + i].value === 3) {console.log("B check");return true;}
+        if (color === "white" && game_board[king_cell.x - i][king_cell.y + i].value === 13) {check_piece.push("B");}
+        if (color === "black" && game_board[king_cell.x - i][king_cell.y + i].value === 3) {check_piece.push("B");}
+        if (color === "white" && game_board[king_cell.x - i][king_cell.y + i].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x - i][king_cell.y + i].value === 2) {check_piece.push("Q");}
         else break;
     }
     //  down left +1, -1
     for (let i = 1; i <= diagonal_distance[2]; i++) {
         if (game_board[king_cell.x + i][king_cell.y - i].value === 0) continue;
-        if (game_board[king_cell.x + i][king_cell.y - i].value === 3) {console.log("B check");return true;}
+        if (color === "white" && game_board[king_cell.x + i][king_cell.y - i].value === 13) {check_piece.push("B");}
+        if (color === "black" && game_board[king_cell.x + i][king_cell.y - i].value === 3) {check_piece.push("B");}
+        if (color === "white" && game_board[king_cell.x + i][king_cell.y - i].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x + i][king_cell.y - i].value === 2) {check_piece.push("Q");}
         else break;
     }
     //  down right +1, +1
     for (let i = 1; i <= diagonal_distance[3]; i++) {
         if (game_board[king_cell.x + i][king_cell.y + i].value === 0) continue;
-        if (game_board[king_cell.x + i][king_cell.y + i].value === 3) {console.log("B check");return true;}
+        if (color === "white" && game_board[king_cell.x + i][king_cell.y + i].value === 13) {check_piece.push("B");}
+        if (color === "black" && game_board[king_cell.x + i][king_cell.y + i].value === 3) {check_piece.push("B");}
+        if (color === "white" && game_board[king_cell.x + i][king_cell.y + i].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x + i][king_cell.y + i].value === 2) {check_piece.push("Q");}
         else break;
     }
 
@@ -659,98 +960,57 @@ function king_check(color){
     //  up
     for (let i = 1; i <= king_cell.x; i++) {
         if (game_board[king_cell.x - i][king_cell.y].value === 0) continue;
-        if (game_board[king_cell.x - i][king_cell.y].value === 5) {console.log("R check");return true;}
+        if (color === "white" && game_board[king_cell.x - i][king_cell.y].value === 15) {check_piece.push("R");}
+        if (color === "black" && game_board[king_cell.x - i][king_cell.y].value === 5) {check_piece.push("R");}
+        if (color === "white" && game_board[king_cell.x - i][king_cell.y].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x - i][king_cell.y].value === 2) {check_piece.push("Q");}
         else break;
     }
     //  down
     for (let i = 1; i < 8 - king_cell.x; i++) {
         if (game_board[king_cell.x + i][king_cell.y].value === 0) continue;
-        if (game_board[king_cell.x + i][king_cell.y].value === 5) {console.log("R check");return true;}
+        if (color === "white" && game_board[king_cell.x + i][king_cell.y].value === 15) {check_piece.push("R");}
+        if (color === "black" && game_board[king_cell.x + i][king_cell.y].value === 5) {check_piece.push("R");}
+        if (color === "white" && game_board[king_cell.x + i][king_cell.y].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x + i][king_cell.y].value === 2) {check_piece.push("Q");}
         else break;
     }
     //  left
     for (let i = 1; i <= king_cell.y; i++) {
         if (game_board[king_cell.x][king_cell.y - i].value === 0) continue;
-        if (game_board[king_cell.x][king_cell.y - i].value === 5) {console.log("R check");return true;}
+        if (color === "white" && game_board[king_cell.x][king_cell.y - i].value === 15) {check_piece.push("R");}
+        if (color === "black" && game_board[king_cell.x][king_cell.y - i].value === 5) {check_piece.push("R");}
+        if (color === "white" && game_board[king_cell.x][king_cell.y - i].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x][king_cell.y - i].value === 2) {check_piece.push("Q");}
         else break;
     }
     //  right
     for (let i = 1; i < 8 - king_cell.y; i++) {
         if (game_board[king_cell.x][king_cell.y + i].value === 0) continue;
-        if (game_board[king_cell.x][king_cell.y + i].value === 5) {console.log("R check");return true;}
+        if (color === "white" && game_board[king_cell.x][king_cell.y + i].value === 15) {check_piece.push("R");}
+        if (color === "black" && game_board[king_cell.x][king_cell.y + i].value === 5) {check_piece.push("R");}
+        if (color === "white" && game_board[king_cell.x][king_cell.y + i].value === 12) {check_piece.push("Q");}
+        if (color === "black" && game_board[king_cell.x][king_cell.y + i].value === 2) {check_piece.push("Q");}
         else break;
     }
 
-    // Queen check
-    //  Queen - Bishop
-    //  up left -1, -1
-    for (let i = 1; i <= diagonal_distance[0]; i++) {
-        if (game_board[king_cell.x - i][king_cell.y - i].value === 0) continue;
-        if (game_board[king_cell.x - i][king_cell.y - i].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    //  up right -1, +1
-    for (let i = 1; i <= diagonal_distance[1]; i++) {
-        if (game_board[king_cell.x - i][king_cell.y + i].value === 0) continue;
-        if (game_board[king_cell.x - i][king_cell.y + i].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    //  down left +1, -1
-    for (let i = 1; i <= diagonal_distance[2]; i++) {
-        if (game_board[king_cell.x + i][king_cell.y - i].value === 0) continue;
-        if (game_board[king_cell.x + i][king_cell.y - i].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    //  down right +1, +1
-    for (let i = 1; i <= diagonal_distance[3]; i++) {
-        if (game_board[king_cell.x + i][king_cell.y + i].value === 0) continue;
-        if (game_board[king_cell.x + i][king_cell.y + i].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    // Queen - Rook
-    //  up
-    for (let i = 1; i <= king_cell.x; i++) {
-        if (game_board[king_cell.x - i][king_cell.y].value === 0) continue;
-        if (game_board[king_cell.x - i][king_cell.y].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    //  down
-    for (let i = 1; i < 8 - king_cell.x; i++) {
-        if (game_board[king_cell.x + i][king_cell.y].value === 0) continue;
-        if (game_board[king_cell.x + i][king_cell.y].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    //  left
-    for (let i = 1; i <= king_cell.y; i++) {
-        if (game_board[king_cell.x][king_cell.y - i].value === 0) continue;
-        if (game_board[king_cell.x][king_cell.y - i].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-    //  right
-    for (let i = 1; i < 8 - king_cell.y; i++) {
-        if (game_board[king_cell.x][king_cell.y + i].value === 0) continue;
-        if (game_board[king_cell.x][king_cell.y + i].value === 2) {console.log("Q check");return true;}
-        else break;
-    }
-
-    if(check_piece[0]){
-        console.log(check_piece);
-        return true;
-    }else{
-        return false;
-    }
+    return check_piece[0] !== undefined;
 }
-function if_move_uncheck(color, path_list){
+function if_move_uncheck(color, piece, pos, path_list){
+    let temp_list = [];
+    let temp_value;
     path_list.forEach((path, i)=>{
-        game_board[path[0]][path[1]].value = 6;
-        if(king_check(color)){
-            path_list.splice(i,1);
+        temp_value = game_board[path[0]][path[1]].value;
+        game_board[path[0]][path[1]].value = piece;
+        game_board[pos[0]][pos[1]].value = 0;
+        if(!king_check(color)){
+            temp_list.push(path);
         }
-        game_board[path[0]][path[1]].value = 0;
+        game_board[path[0]][path[1]].value = temp_value;
+        game_board[pos[0]][pos[1]].value = piece;
     });
-    return path_list;
+    return temp_list;
 }
-
 function piece_type(piece){
     if (piece === 'K') {
         return new piece_King;
@@ -766,7 +1026,6 @@ function piece_type(piece){
         return new piece_Pawn();
     }
 }
-
 function add_table() {
     let temp_table = "";
     let temp_color = true;
@@ -792,7 +1051,6 @@ function add_table() {
     chess_board_E.innerHTML = temp_table;
     cells = document.querySelectorAll(".cell");
 }
-
 function update_notation_table(){
     notation_table_E.innerHTML = "";
     for(let i=0;i<notation.length;i++){
@@ -805,18 +1063,18 @@ function update_notation_table(){
         notation_table_E.innerHTML += temp;
     }
 }
-
-function find_cell_by_index(index){
-    for(let i of game_board){
-        for(let j of i){
-            if(j.index === index) return j;
-        }
-    }
-}
-
+// function find_cell_by_index(index){
+//     // let index = find_cell_by_index(i).value;
+//     return game_board[parseInt(index/8)][index%8];
+// }
 function update_chess_board(){
+    // if(board_turn){
+    //
+    // }else{
+    //
+    // }
     cells.forEach((cell,i)=> {
-        let index = find_cell_by_index(i).value;
+        let index = game_board[parseInt(i/8)][i%8].value;
 
         // change to image
         if (index > 10) {
@@ -830,7 +1088,6 @@ function update_chess_board(){
         }
     });
 }
-
 function console_chess_board(){
     let show_arr = Array.from({length:8}).map(()=>{return []});
     game_board.forEach((line,i)=>{
@@ -840,7 +1097,6 @@ function console_chess_board(){
     });
     console.table(show_arr);
 }
-
 function show_path(path_list){
     path_list.forEach((path)=>{
         if(game_board[path[0]][path[1]].value === 0){
@@ -850,7 +1106,6 @@ function show_path(path_list){
         }
     });
 }
-
 function add_piece_event(){
     cells.forEach((cell,i)=>{
         cell.addEventListener("click",()=>{
@@ -861,6 +1116,13 @@ function add_piece_event(){
                 // move = [{mR:parseInt(i/8), mF:parseInt(i%8)}];
                 move = [[parseInt(i/8), parseInt(i%8)]];
                 select = game_board[parseInt(i/8)][parseInt(i%8)];
+
+                if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
+                    console.log("not your turn");
+                    isSelected = false;
+                    return;
+                }
+
                 if(select.value !== 0){
                     move_piece = select.piece;
                     selectedPath = select.get_path();
@@ -872,13 +1134,38 @@ function add_piece_event(){
                 }else{
                     isSelected = false;
                 }
-
             }else{
                 isSelected = false;
                 move.push([parseInt(i/8), parseInt(i%8)]);
+
+
                 selectedPath.forEach((path)=>{
                     if(path[0] === move[1][0] && path[1] === move[1][1]){
                         last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
+
+                        // promotion
+                        if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
+                            let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                            let temp = true;
+
+                            while(temp){
+                                if(isNaN(promotion) || promotion > 4 || promotion < 1){
+                                    promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                                }else{
+                                    temp = false;
+                                }
+                            }
+                            if(promotion === 1){            // Queen
+                                select.value = 2;
+                            }else if(promotion === 2){      // Rook
+                                select.value = 5;
+                            }else if(promotion === 3){      // Bishop
+                                select.value = 3;
+                            }else if(promotion === 4){      // Knight
+                                select.value = 4;
+                            }
+                            if(!turn) select.value += 10;
+                        }
 
                         // move
                         game_board[move[1][0]][move[1][1]].value = select.value;
@@ -891,11 +1178,20 @@ function add_piece_event(){
                                 cell.update_cell();
                             });
                         });
-                        update_chess_board();
+
+
+
+
+
+
+
+
 
                         if(king_check("white")) isCheck = true;
                         if(king_check("black")) isCheck = true;
-                        // console_chess_board();
+
+                        update_chess_board();
+                        turn = !turn;
                     }
                 });
 
