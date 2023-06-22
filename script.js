@@ -19,6 +19,7 @@ let isMoved = false;
 let isTake = false;
 let isCheck = false;
 let isSelected = false;
+let isGameEnd = false;
 let select;
 let selectedPath = [];
 let last_move;
@@ -1106,10 +1107,39 @@ function show_path(path_list){
         }
     });
 }
+function check_game_end(){
+    let isEnd = true;
+    if(turn){   // white checkmate black
+        game_board.forEach((line)=>{
+            line.forEach((cell)=>{
+                if(cell.color === "black" && cell.get_path()[0] !== undefined){
+                    isEnd = false;
+                }
+            });
+        });
+        if(isEnd){
+            console.log("white win!");
+            isGameEnd = true;
+        }
+    }else{      // black checkmate white
+        game_board.forEach((line)=>{
+            line.forEach((cell)=>{
+                if(cell.color === "white" && cell.get_path()[0] !== undefined){
+                    isEnd = false;
+                }
+            });
+        });
+        if(isEnd){
+            console.log("black win!");
+            isGameEnd = true;
+        }
+    }
+}
 function add_piece_event(){
     cells.forEach((cell,i)=>{
         cell.addEventListener("click",()=>{
             update_chess_board();
+            if(isGameEnd) return;
             if(!isSelected){
                 isSelected = true;
 
@@ -1179,16 +1209,10 @@ function add_piece_event(){
                             });
                         });
 
-
-
-
-
-
-
-
-
-                        if(king_check("white")) isCheck = true;
-                        if(king_check("black")) isCheck = true;
+                        if(king_check("white") || king_check("black")) {
+                            isCheck = true;
+                            check_game_end();
+                        }
 
                         update_chess_board();
                         turn = !turn;
