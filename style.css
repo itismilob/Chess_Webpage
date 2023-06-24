@@ -80,8 +80,11 @@ body{
     align-items: center;
     justify-content: center;
 
-    border: 5px solid rgba(255,0,0,0.5);
+    border: 5px solid darkgray;
     border-radius: 50%;
+}
+.last_move{
+    background-image: repeating-linear-gradient(45deg, rgb(255, 197, 0), rgb(255, 197, 0) 1.5%, transparent 1.5%, transparent 5%);
 }
 /*  game board  */
 

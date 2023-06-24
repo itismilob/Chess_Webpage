@@ -12,10 +12,11 @@ let move = [];
 let move_piece;
 let move_distance;
 let move_direction = [];
-let isKingMoved = [false, false];
 
 let turn = true;
-let isMoved = false;
+let isMoved = [[false, false, false],[false, false, false]];
+let castles = [[false, false], [false, false]];
+
 let isTake = false;
 let isCheck = false;
 let isSelected = false;
@@ -556,18 +557,30 @@ class piece_King{
             if(x>0 && (game_board[x-1][y].value > 10 || game_board[x-1][y].value === 0)){this_path.push([x-1,y])}
             // -1 +1
             if(x>0 && y<7 && (game_board[x-1][y+1].value > 10 || game_board[x-1][y+1].value === 0)){this_path.push([x-1, y+1]);}
-
             // 0 -1
             if(y>0 && (game_board[x][y-1].value > 10 || game_board[x][y-1].value === 0)){this_path.push([x,y-1]);}
             // 0 +1
             if(y<7 && (game_board[x][y+1].value > 10 || game_board[x][y+1].value === 0)){this_path.push([x,y+1]);}
-
             // +1 -1
             if(x<7 && y>0 && (game_board[x+1][y-1].value > 10 || game_board[x+1][y-1].value === 0)){this_path.push([x+1, y-1]);}
             // +1 0
             if(x<7 && (game_board[x+1][y].value > 10 || game_board[x+1][y].value === 0)){this_path.push([x+1, y]);}
             // +1 +1
             if(x<7 && y<7 && (game_board[x+1][y+1].value > 10 || game_board[x+1][y+1].value === 0)){this_path.push([x+1, y+1]);}
+
+            // Castling
+            //  Queenside castle
+            if(!isMoved[0][0] && !isMoved[0][1] && game_board[7][1].value === 0 && game_board[7][2].value === 0 && game_board[7][3].value === 0){
+                castles[0][0] = true;
+                this_path.push([7, 2]);
+                this_path.push([7, 0]);
+            }
+            //  Kingside castle
+            if(!isMoved[0][1] && !isMoved[0][2] && game_board[7][5].value === 0 && game_board[7][6].value === 0){
+                castles[0][1] = true;
+                this_path.push([7, 6]);
+                this_path.push([7, 7]);
+            }
 
             if(isCheck){
                 this_path = if_move_uncheck("white", 1, [x,y], this_path);
@@ -579,18 +592,30 @@ class piece_King{
             if(x>0 && game_board[x-1][y].value < 10){this_path.push([x-1,y])}
             // -1 +1
             if(x>0 && y<7 && game_board[x-1][y+1].value < 10){this_path.push([x-1, y+1]);}
-
             // 0 -1
             if(y>0 && game_board[x][y-1].value < 10){this_path.push([x,y-1]);}
             // 0 +1
             if(y<7 && game_board[x][y+1].value < 10){this_path.push([x,y+1]);}
-
             // +1 -1
             if(x<7 && y>0 && game_board[x+1][y-1].value < 10){this_path.push([x+1, y-1]);}
             // +1 0
             if(x<7 && game_board[x+1][y].value < 10){this_path.push([x+1, y]);}
             // +1 +1
             if(x<7 && y<7 && game_board[x+1][y+1].value < 10){this_path.push([x+1, y+1]);}
+
+            // Castling
+            //  Queenside castle
+            if(!isMoved[1][0] && !isMoved[1][1] && game_board[0][1].value === 0 && game_board[0][2].value === 0 && game_board[0][3].value === 0){
+                castles[1][0] = true;
+                this_path.push([0, 2]);
+                this_path.push([0, 0]);
+            }
+            //  Kingside castle
+            if(!isMoved[1][1] && !isMoved[1][2] && game_board[0][5].value === 0 && game_board[0][6].value === 0){
+                castles[1][1] = true;
+                this_path.push([0, 6]);
+                this_path.push([0, 7]);
+            }
 
             if(isCheck){
                 this_path = if_move_uncheck("black", 11, [x,y], this_path);
@@ -1164,10 +1189,10 @@ function add_piece_event(){
                 }else{
                     isSelected = false;
                 }
+
             }else{
                 isSelected = false;
                 move.push([parseInt(i/8), parseInt(i%8)]);
-
 
                 selectedPath.forEach((path)=>{
                     if(path[0] === move[1][0] && path[1] === move[1][1]){
@@ -1197,12 +1222,35 @@ function add_piece_event(){
                             if(!turn) select.value += 10;
                         }
 
+                        // castling
+                        if(castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                            game_board[7][3].value = 5;
+                            game_board[7][0].value = 0;
+                            move[1][1] = 2;
+                        }
+                        if(castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                            game_board[7][5].value = 5;
+                            game_board[7][7].value = 0;
+                            move[1][1] = 6;
+                        }
+                        if(castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                            game_board[0][3].value = 15;
+                            game_board[0][0].value = 0;
+                            move[1][1] = 2;
+                        }
+                        if(castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                            game_board[0][5].value = 15;
+                            game_board[0][7].value = 0;
+                            move[1][1] = 6;
+                        }
+
                         // move
                         game_board[move[1][0]][move[1][1]].value = select.value;
                         game_board[move[0][0]][move[0][1]].value = 0;
                         if(path[2]){
                             game_board[path[2][0]][path[2][1]].value = 0;
                         }
+
                         game_board.forEach((line)=>{
                             line.forEach((cell)=>{
                                 cell.update_cell();
@@ -1214,14 +1262,29 @@ function add_piece_event(){
                             check_game_end();
                         }
 
+                        if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
+                            isMoved[0][0] = true;
+                        }
+                        if(move[0][0] === 7 && move[0][1] === 4){       // white King
+                            isMoved[0][1] = true;
+                        }
+                        if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
+                            isMoved[0][2] = true;
+                        }
+                        if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
+                            isMoved[1][0] = true;
+                        }
+                        if(move[0][0] === 0 && move[0][1] === 4){       // black King
+                            isMoved[1][1] = true;
+                        }
+                        if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
+                            isMoved[1][2] = true;
+                        }
+
                         update_chess_board();
                         turn = !turn;
                     }
                 });
-
-                // move.push({mR:parseInt(i/8), mF:parseInt(i%8)});
-                // move_direction = {mR:move[1].mR - move[0].mR, mF:move[1].mF - move[0].mF};
-                // move_distance = {mR:Math.abs(move_direction.mR), mF:Math.abs(move_direction.mF)};
             }
         });
 
