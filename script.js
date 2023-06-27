@@ -25,16 +25,6 @@ let select;
 let selectedPath = [];
 let last_move;
 
-// let game_board = [
-//     [15,14,13,12,11,13,14,15],
-//     [16,16,16,16,16,16,16,16],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [6,6,6,6,6,6,6,6],
-//     [5,4,3,2,1,3,4,5],
-// ];
 let game_board = [
     [15,14,13,12,11,13,14,15],
     [16,16,16,16,16,16,16,16],
@@ -123,17 +113,6 @@ class piece_Pawn{
         }
         return this_path;
     }
-    check_move(){
-        if(move_distance.mF !== 0) return true;
-        if(turn){   //white
-            if(move_direction.mR > 0 || move_distance.mR > 2) return true;
-            if(move_distance.mR === 2 && move[0].mR !== 6 && game_board[5][move[0].mF] !== 0) return true;
-        }else{      //black turn
-            if(move_direction.mR < 0 || move_distance.mR > 2) return true;
-            if(move_distance.mR === 2 && move[0].mR !== 1 && game_board[2][move[0].mF] !== 0) return true;
-        }
-        return false;
-    }
 }
 class piece_Knight{
     get_path(x, y, color){
@@ -176,10 +155,6 @@ class piece_Knight{
         }
 
         return this_path;
-    }
-    check_move(){
-        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-        return !((move_distance.mR === 1 && move_distance.mF === 2) || (move_distance.mR === 2 && move_distance.mF === 1));
     }
 }
 class piece_Rook{
@@ -253,24 +228,6 @@ class piece_Rook{
         }
         return this_path;
     }
-    check_move(){
-        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-        if(!(move_distance.mR === 0 || move_distance.mF === 0)) return true;
-        if(move_distance.mR === 1 || move_distance.mF === 1) return false;
-
-        if(move_distance.mR > move_distance.mF){    //rank move
-            for(let i=1;i<move_distance.mR;i++){
-                if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
-                if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
-            }
-        }else{                                      //file move
-            for(let i=1;i<move_distance.mF;i++){
-                if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
-                if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
-            }
-        }
-        return false;
-    }
 }
 class piece_Bishop{
     get_path(x, y, color){
@@ -340,32 +297,6 @@ class piece_Bishop{
             this_path = if_move_uncheck("black", 13, [x,y], this_path);
         }
         return this_path;
-    }
-    check_move(){
-        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-        if(!(move_distance.mR === move_distance.mF)) return true;
-        if(move_distance.mR === 1 && move_distance.mF === 1) return false;
-
-        if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
-            }
-        }
-        if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
-            }
-        }
-        if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
-            }
-        }
-        if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
-            for(let i=1;i<move_distance.mR;i++){
-                if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
-            }
-        }
     }
 }
 class piece_Queen{
@@ -499,52 +430,6 @@ class piece_Queen{
         }
         return this_path;
     }
-    check_move(){
-        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-        if(!(move_distance.mR === 0 || move_distance.mF === 0) && !(move_distance.mR === move_distance.mF)) return true;
-
-        //rook move
-        if(move_distance.mR === 0 || move_distance.mF === 0){
-            if(move_distance.mR === 1 || move_distance.mF === 1) return false;
-            if(move_distance.mR > move_distance.mF){    //rank move
-                for(let i=1;i<move_distance.mR;i++){
-                    if(move_direction.mR < 0 && game_board[move[0].mR-i][move[0].mF] !== 0) return true;     //move up
-                    if(move_direction.mR > 0 && game_board[move[0].mR+i][move[0].mF] !== 0) return true;     //move down
-                }
-            }else{                                      //file move
-                for(let i=1;i<move_distance.mF;i++){
-                    if(move_direction.mF < 0 && game_board[move[0].mR][move[0].mF-i] !== 0) return true;     //move left
-                    if(move_direction.mF > 0 && game_board[move[0].mR][move[0].mF+i] !== 0) return true;     //move right
-                }
-            }
-        }
-
-        //bishop move
-        if(move_distance.mR === move_distance.mF){
-            if(move_distance.mR === 1 && move_distance.mF === 1) return false;
-            if(move_direction.mR < 0 && move_direction.mF < 0){     //move up left --
-                for(let i=1;i<move_distance.mR;i++){
-                    if(game_board[move[0].mR-i][move[0].mF-i] !== 0) return true;
-                }
-            }
-            if(move_direction.mR > 0 && move_direction.mF > 0){     //move down right ++
-                for(let i=1;i<move_distance.mR;i++){
-                    if(game_board[move[0].mR+i][move[0].mF+i] !== 0) return true;
-                }
-            }
-            if(move_direction.mR < 0 && move_direction.mF > 0){     //move up right -+
-                for(let i=1;i<move_distance.mR;i++){
-                    if(game_board[move[0].mR-i][move[0].mF+i] !== 0) return true;
-                }
-            }
-            if(move_direction.mR > 0 && move_direction.mF < 0){     //move down left +-
-                for(let i=1;i<move_distance.mR;i++){
-                    if(game_board[move[0].mR+i][move[0].mF-i] !== 0) return true;
-                }
-            }
-        }
-        return false;
-    }
 }
 class piece_King{
     get_path(x, y, color){
@@ -645,211 +530,8 @@ class piece_King{
 
         return temp_path;
     }
-    check_move(){
-        if(game_board[move[1].mR][move[1].mF] !== 0) return true;
-        if(!(move_distance.mR <= 1 && move_distance.mF <= 1)) return true;
-
-        //check can move
-        let diagonal_distance = [];
-        diagonal_distance.push(check_diagonal_distance(move[1].mR, move[1].mF));
-        diagonal_distance.push(check_diagonal_distance(move[1].mR, 7-move[1].mF));
-        diagonal_distance.push(check_diagonal_distance(7-move[1].mR, move[1].mF));
-        diagonal_distance.push(check_diagonal_distance(7-move[1].mR, 7-move[1].mF));
-
-        //  -king-
-        if(turn){
-            if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 11) return true;
-            if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 11) return true;
-            if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 11) return true;
-
-            if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 11) return true;
-            if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 11) return true;
-
-            if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 11) return true;
-            if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 11) return true;
-            if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 11) return true;
-        }else{
-            if(move[0].mR > 0 && move[0].mF > 0 && game_board[move[1].mR-1][move[1].mF-1] === 1) return true;
-            if(move[0].mR > 0 && game_board[move[1].mR-1][move[1].mF] === 1) return true;
-            if(move[0].mR > 0 && move[0].mF < 7 && game_board[move[1].mR-1][move[1].mF+1] === 1) return true;
-
-            if(move[0].mF > 0 && game_board[move[1].mR][move[1].mF-1] === 1) return true;
-            if(move[0].mR < 7 && game_board[move[1].mR][move[1].mF+1] === 1) return true;
-
-            if(move[0].mR < 7 && move[0].mF > 0 && game_board[move[1].mR+1][move[1].mF-1] === 1) return true;
-            if(move[0].mR < 7 && game_board[move[1].mR+1][move[1].mF] === 1) return true;
-            if(move[0].mR < 7 && move[0].mF < 7 && game_board[move[1].mR+1][move[1].mF+1] === 1) return true;
-        }
-        //  -king-
-
-        //  -queen-
-        //  queen rook
-        //  up
-        for(let i=1;i<=move[1].mR;i++){
-            if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
-            if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
-            else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
-            else break;
-        }
-        //  down
-        for(let i=1;i<8-move[1].mR;i++){
-            if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
-            if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
-            else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
-            else break;
-        }
-        //  left
-        for(let i=1;i<=move[1].mF;i++){
-            if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
-            if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
-            else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
-            else break;
-        }
-        //  right
-        for(let i=1;i<8-move[1].mF;i++){
-            if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
-            if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
-            else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
-            else break;
-        }
-        //  queen rook
-
-        //  queen bishop
-        //  up left -1, -1
-        for(let i=1;i<=diagonal_distance[0];i++){
-            if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
-            if(turn && game_board[move[1].mR-i][move[1].mF-i] === 12) return true;
-            else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 2) return true;
-            else break;
-        }
-        //  up right -1, +1
-        for(let i=1;i<=diagonal_distance[1];i++){
-            if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
-            if(turn && game_board[move[1].mR-i][move[1].mF+i] === 12) return true;
-            else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 2) return true;
-            else break;
-        }
-        //  down left +1, -1
-        for(let i=1;i<=diagonal_distance[2];i++){
-            if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
-            if(turn && game_board[move[1].mR+i][move[1].mF-i] === 12) return true;
-            else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 2) return true;
-            else break;
-        }
-        //  down right +1, +1
-        for(let i=1;i<=diagonal_distance[3];i++){
-            if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
-            if(turn && game_board[move[1].mR+i][move[1].mF+i] === 12) return true;
-            else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 2) return true;
-            else break;
-        }
-        //  queen bishop
-        //  -queen-
-
-        //  -rook-
-        //  up
-        for(let i=1;i<=move[1].mR;i++){
-            if(game_board[move[1].mR-i][move[1].mF] === 0) continue;
-            if(turn && game_board[move[1].mR-i][move[1].mF] === 15) return true;
-            else if(!turn && game_board[move[1].mR-i][move[1].mF] === 5) return true;
-            else break;
-        }
-        //  down
-        for(let i=1;i<8-move[1].mR;i++){
-            if(game_board[move[1].mR+i][move[1].mF] === 0) continue;
-            if(turn && game_board[move[1].mR+i][move[1].mF] === 15) return true;
-            else if(!turn && game_board[move[1].mR+i][move[1].mF] === 5) return true;
-            else break;
-        }
-        //  left
-        for(let i=1;i<=move[1].mF;i++){
-            if(game_board[move[1].mR][move[1].mF-i] === 0) continue;
-            if(turn && game_board[move[1].mR][move[1].mF-i] === 15) return true;
-            else if(!turn && game_board[move[1].mR][move[1].mF-i] === 5) return true;
-            else break;
-        }
-        //  right
-        for(let i=1;i<8-move[1].mF;i++){
-            if(game_board[move[1].mR][move[1].mF+i] === 0) continue;
-            if(turn && game_board[move[1].mR][move[1].mF+i] === 15) return true;
-            else if(!turn && game_board[move[1].mR][move[1].mF+i] === 5) return true;
-            else break;
-        }
-        //  -rook-
-
-        //  -bishop-
-        //  up left -1, -1
-        for(let i=1;i<=diagonal_distance[0];i++){
-            if(game_board[move[1].mR-i][move[1].mF-i] === 0) continue;
-            if(turn && game_board[move[1].mR-i][move[1].mF-i] === 13) return true;
-            else if(!turn && game_board[move[1].mR-i][move[1].mF-i] === 3) return true;
-            else break;
-        }
-        //  up right -1, +1
-        for(let i=1;i<=diagonal_distance[1];i++){
-            if(game_board[move[1].mR-i][move[1].mF+i] === 0) continue;
-            if(turn && game_board[move[1].mR-i][move[1].mF+i] === 13) return true;
-            else if(!turn && game_board[move[1].mR-i][move[1].mF+i] === 3) return true;
-            else break;
-        }
-        //  down left +1, -1
-        for(let i=1;i<=diagonal_distance[2];i++){
-            if(game_board[move[1].mR+i][move[1].mF-i] === 0) continue;
-            if(turn && game_board[move[1].mR+i][move[1].mF-i] === 13) return true;
-            else if(!turn && game_board[move[1].mR+i][move[1].mF-i] === 3) return true;
-            else break;
-        }
-        //  down right +1, +1
-        for(let i=1;i<=diagonal_distance[3];i++){
-            if(game_board[move[1].mR+i][move[1].mF+i] === 0) continue;
-            if(turn && game_board[move[1].mR+i][move[1].mF+i] === 13) return true;
-            else if(!turn && game_board[move[1].mR+i][move[1].mF+i] === 3) return true;
-            else break;
-        }
-        //  -bishop-
-
-        //  -knight-
-        if(turn){
-            //top
-            if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 14) return true;
-            if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 14) return true;
-            //left
-            if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 14) return true;
-            if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 14) return true;
-            //right
-            if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 14) return true;
-            if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 14) return true;
-            //bottom
-            if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 14) return true;
-            if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 14) return true;
-        }else{
-            //top
-            if(move[1].mR > 1 && move[1].mF > 0 && game_board[move[1].mR-2][move[1].mF-1] === 4) return true;
-            if(move[1].mR > 1 && move[1].mF < 7 && game_board[move[1].mR-2][move[1].mF+1] === 4) return true;
-            //left
-            if(move[1].mR > 0 && move[1].mF > 1 && game_board[move[1].mR-1][move[1].mF-2] === 4) return true;
-            if(move[1].mR < 7 && move[1].mF > 1 && game_board[move[1].mR+1][move[1].mF-2] === 4) return true;
-            //right
-            if(move[1].mR > 0 && move[1].mF < 6 && game_board[move[1].mR-1][move[1].mF+2] === 4) return true;
-            if(move[1].mR > 7 && move[1].mF < 6 && game_board[move[1].mR+1][move[1].mF+2] === 4) return true;
-            //bottom
-            if(move[1].mR < 6 && move[1].mF > 0 && game_board[move[1].mR+2][move[1].mF-1] === 4) return true;
-            if(move[1].mR < 6 && move[1].mF < 7 && game_board[move[1].mR+2][move[1].mF+1] === 4) return true;
-        }
-        //  -knight-
-
-        //  -pawn-
-        if(turn){   //white
-            if(game_board[move[1].mR-1][move[1].mF-1] === 16 || game_board[move[1].mR-1][move[1].mF+1] === 16) return true;
-        }else{      //black
-            if(game_board[move[1].mR+1][move[1].mF-1] === 6 || game_board[move[1].mR+1][move[1].mF+1] === 6) return true;
-        }
-        //  -pawn-
-        return false;
-    }
 }
 
-// king check
 function king_check(color){
     let king_cell;
     let diagonal_distance = [];
@@ -1053,6 +735,7 @@ function piece_type(piece){
     }
 }
 function add_table() {
+    // make board image
     let temp_table = "";
     let temp_color = true;
     for (let rows = 0; rows < 8; rows++) {
@@ -1089,10 +772,6 @@ function update_notation_table(){
         notation_table_E.innerHTML += temp;
     }
 }
-// function find_cell_by_index(index){
-//     // let index = find_cell_by_index(i).value;
-//     return game_board[parseInt(index/8)][index%8];
-// }
 function update_chess_board(){
     // if(board_turn){
     //
@@ -1159,6 +838,11 @@ function check_game_end(){
             isGameEnd = true;
         }
     }
+}
+function check_diagonal_distance(a,b){
+    if(a < b) return a;
+    else if(a > b) return b;
+    else return a;
 }
 function add_piece_event(){
     cells.forEach((cell,i)=>{
@@ -1288,160 +972,17 @@ function add_piece_event(){
             }
         });
 
-        // cell.addEventListener("dragstart",()=>{
-        //     move = [{mR:parseInt(i/8), mF:parseInt(i%8)}];
-        //     move_piece = game_board[move[0].mR][move[0].mF].piece;
-        //     isMoved = false;
-        // });
-        //
-        // cell.addEventListener("dragover",(e)=>{
-        //     e.preventDefault();
-        // });
-        // cell.addEventListener("drop",(e)=>{
-        //     e.preventDefault();
-        //
-        //     if(isMoved)return;
-        //     isMoved = true;
-        //     isTake = false;
-        //
-        //     move.push({mR:parseInt(i/8), mF:parseInt(i%8)});
-        //     move_direction = {mR:move[1].mR - move[0].mR, mF:move[1].mF - move[0].mF};
-        //     move_distance = {mR:Math.abs(move_direction.mR), mF:Math.abs(move_direction.mF)};
-        //
-        //     // not piece
-        //     if(move_piece === 0) return;
-        //     // not turn
-        //     if((turn && move_piece > 10) || (!turn && move_piece < 10)){
-        //         console.log("it's not your turn");
-        //         return;
-        //     }
-        //     // not move
-        //     if(move[0].mR === move[1].mR && move[0].mF === move[1].mF) return;
-        //     // not empty -> enemy take
-        //     if(turn && game_board[move[1].mR][move[1].mF] > 10){    //white takes black
-        //         isTake = true;
-        //     }else if(!turn && game_board[move[1].mR][move[1].mF] < 10 && game_board[move[1].mR][move[1].mF] !== 0) {  //black takes white
-        //         isTake = true;
-        //     }
-        //
-        //     //check can move
-        //     switch(parseInt(move_piece%10)){
-        //         case 1:     //K
-        //             //castling
-        //             if(turn){
-        //                 if(!isCheck && !isKingMoved[0]){
-        //                     //king side castling
-        //                     if(move[1].mR === 7 && (move[1].mF === 6 || move[1].mF === 7) && game_board[7][5] === 0 && game_board[7][6] === 0 && game_board[7][7] === 5){
-        //                         game_board[7][6] = 1;
-        //                         game_board[7][5] = 5;
-        //                         game_board[7][4] = 0;
-        //                         game_board[7][7] = 0;
-        //                         update_chess_board();
-        //                         notation.push(["O-O",""]);
-        //                         update_notation_table();
-        //                         turn = !turn;
-        //                         isKingMoved[0] = true;
-        //                         return;
-        //                     //queen side castling
-        //                     }else if(move[1].mR === 7 && (move[1].mF === 0 || move[1].mF === 1 || move[1].mF === 2) && game_board[7][1] === 0 && game_board[7][2] === 0 && game_board[7][3] === 0){
-        //                         game_board[7][2] = 1;
-        //                         game_board[7][3] = 5;
-        //                         game_board[7][0] = 0;
-        //                         game_board[7][4] = 0;
-        //                         update_chess_board();
-        //                         notation.push(["O-O-O",""]);
-        //                         update_notation_table();
-        //                         turn = !turn;
-        //                         isKingMoved[0] = true;
-        //                         return;
-        //                     }
-        //                 }
-        //             }else{
-        //                 if(!isCheck && !isKingMoved[1]){
-        //                     //king side castling
-        //                     if(move[1].mR === 0 && (move[1].mF === 6 || move[1].mF === 7) && game_board[0][5] === 0 && game_board[0][6] === 0 ){
-        //                         game_board[0][6] = 11;
-        //                         game_board[0][5] = 15;
-        //                         game_board[0][4] = 0;
-        //                         game_board[0][7] = 0;
-        //                         update_chess_board();
-        //                         notation[notation.length-1][1] = "O-O";
-        //                         update_notation_table();
-        //                         turn = !turn;
-        //                         isKingMoved[1] = true;
-        //                         return;
-        //                         //queen side castling
-        //                     }else if(move[1].mR === 0 && (move[1].mF === 0 || move[1].mF === 1 || move[1].mF === 2)&& game_board[0][1] === 0 && game_board[0][2] === 0 && game_board[0][3] === 0){
-        //                         game_board[0][2] = 11;
-        //                         game_board[0][3] = 15;
-        //                         game_board[0][0] = 0;
-        //                         game_board[0][4] = 0;
-        //                         update_chess_board();
-        //                         notation[notation.length-1][1] = "O-O-O";
-        //                         update_notation_table();
-        //                         turn = !turn;
-        //                         isKingMoved[1] = true;
-        //                         return;
-        //                     }
-        //                 }
-        //             }
-        //             if(check_king()) return;
-        //             if(turn) isKingMoved[0] = true;
-        //             else isKingMoved[1] = true;
-        //             break;
-        //         case 2:     //Q
-        //             if(check_queen()) return;
-        //             break;
-        //         case 3:     //B
-        //             if(check_bishop()) return;
-        //             break;
-        //         case 4:     //N
-        //             if(check_knight()) return;
-        //             break;
-        //         case 5:     //R
-        //             if(check_rook()) return;
-        //             break;
-        //         case 6:     //P
-        //             if(check_pawn()) return;
-        //             break;
-        //     }
-        //     //check can move
-        //
-        //     //move
-        //     game_board[move[0].mR][move[0].mF] = 0;
-        //     game_board[move[1].mR][move[1].mF] = move_piece;
-        //     update_chess_board();
-        //     //move
-        //
-        //     //update notation
-        //     let move_piece_code = piece_code[parseInt(move_piece%10)];
-        //     let move_code;
-        //
-        //     if(isTake){
-        //         if(move_piece_code === piece_code[6]) move_piece_code = file_char[move[0].mF];
-        //         move_code = move_piece_code + "x" + file_char[move[1].mF] + Math.abs(8 - move[1].mR);
-        //     }else{
-        //         if(move_piece_code === piece_code[6]) move_piece_code = '';
-        //         move_code = move_piece_code + file_char[move[1].mF] + Math.abs(8 - move[1].mR);
-        //     }
-        //
-        //     if(turn){
-        //         notation.push([move_code,""]);
-        //     }else{
-        //         notation[notation.length-1][1] = move_code;
-        //     }
-        //     update_notation_table();
-        //     //update notation
-        //
-        //     turn = !turn;
-        // });
+        cell.addEventListener("dragstart",()=>{
+            // first click
+        });
+        cell.addEventListener("dragover",(e)=>{
+            e.preventDefault();
+        });
+        cell.addEventListener("drop",(e)=>{
+            e.preventDefault();
+            // second click
+        });
     });
-}
-
-function check_diagonal_distance(a,b){
-    if(a < b) return a;
-    else if(a > b) return b;
-    else return a;
 }
 
 window.onload = ()=>{
@@ -1454,20 +995,6 @@ window.onload = ()=>{
     add_table();
     update_chess_board();
     add_piece_event();
-
-    // move_btn_E.addEventListener("click", ()=>{
-    //     let move_input = move_input_E.value;
-    //     if(move_input){
-    //         if(turn){
-    //             notation.push([move_input,""]);
-    //         }else{
-    //             notation[notation.length-1][1] = move_input;
-    //         }
-    //         move_input_E.value = "";
-    //         update_notation_table();
-    //         turn = !turn;
-    //     }
-    // });
 
     console.log("window loaded");
 };
