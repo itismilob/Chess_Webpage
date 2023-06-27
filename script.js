@@ -1,39 +1,63 @@
 const chess_board_E = document.querySelector(".chess_board");
+const chess_board_img_E = document.querySelector(".chess_board_img");
 const notation_table_E = document.querySelector(".notation_table");
-const move_input_E = document.querySelector(".move_input");
-const move_btn_E = document.querySelector(".move_btn");
-let cells;
 
 const file_char =['a','b','c','d','e','f','g','h'];
 const piece_code = ['','K','Q','B','N','R','P'];
+const piece_img = [
+    [
+        "",
+        "<img src='./Chess Image/white/King.jpg' alt='K'>",
+        "<img src='./Chess Image/white/Queen.jpg' alt='Q'>",
+        "<img src='./Chess Image/white/Bishop.jpg' alt='B'>",
+        "<img src='./Chess Image/white/Knight.jpg' alt='N'>",
+        "<img src='./Chess Image/white/Rook.jpg' alt='R'>",
+        "<img src='./Chess Image/white/Pawn.jpg' alt='P'>",
+    ],
+    [
+        "",
+        "<img src='./Chess Image/black/King.png' alt='K'>",
+        "<img src='./Chess Image/black/Queen.jpg' alt='Q'>",
+        "<img src='./Chess Image/black/Bishop.jpg' alt='B'>",
+        "<img src='./Chess Image/black/Knight.jpg' alt='N'>",
+        "<img src='./Chess Image/black/Rook.jpg' alt='R'>",
+        "<img src='./Chess Image/black/Pawn.jpg' alt='P'>",
+    ]
+];
 
+let cells;
 let notation = [];
 let move = [];
 let move_piece;
-let move_distance;
-let move_direction = [];
-
 let turn = true;
 let isMoved = [[false, false, false],[false, false, false]];
 let castles = [[false, false], [false, false]];
-
-let isTake = false;
-let isCheck = false;
+let isCheck;
 let isSelected = false;
 let isGameEnd = false;
 let select;
 let selectedPath = [];
 let last_move;
 
+// let game_board = [
+//     [15,14,13,12,11,13,14,15],
+//     [16,16,16,16,16,16,16,16],
+//     [0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0],
+//     [0,0,0,0,0,0,0,0],
+//     [6,6,6,6,6,6,6,6],
+//     [5,4,3,2,1,3,4,5],
+// ];
 let game_board = [
-    [15,14,13,12,11,13,14,15],
+    [15,0,0,0,11,0,0,15],
     [16,16,16,16,16,16,16,16],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [6,6,6,6,6,6,6,6],
-    [5,4,3,2,1,3,4,5],
+    [5,0,0,0,1,0,0,5],
 ];
 
 class board_cell{
@@ -44,14 +68,21 @@ class board_cell{
         this.value = value;
         this.piece;
         this.type;
+        this.image;
         this.update_cell();
     }
     update_cell(){
         this.piece = piece_code[this.value % 10];
         this.type = piece_type(this.piece);
-        if(this.value > 10) this.color = "black";
-        else if(this.value === 0) this.color = undefined;
-        else this.color = "white";
+        if(this.value === 0) {
+            this.color = undefined;
+        }else if(this.value > 10) {
+            this.color = "black";
+            this.image = piece_img[1][this.value - 10];
+        }else{
+            this.color = "white";
+            this.image = piece_img[0][this.value];
+        }
     }
     get_path(){
         return this.type.get_path(this.x, this.y, this.color);
@@ -434,6 +465,7 @@ class piece_Queen{
 class piece_King{
     get_path(x, y, color){
         let this_path = [];
+        let temp = false;
 
         if(color === "white"){
             // -1 -1
@@ -454,17 +486,35 @@ class piece_King{
             if(x<7 && y<7 && (game_board[x+1][y+1].value > 10 || game_board[x+1][y+1].value === 0)){this_path.push([x+1, y+1]);}
 
             // Castling
-            //  Queenside castle
+            //  Queen side castle
             if(!isMoved[0][0] && !isMoved[0][1] && game_board[7][1].value === 0 && game_board[7][2].value === 0 && game_board[7][3].value === 0){
-                castles[0][0] = true;
-                this_path.push([7, 2]);
-                this_path.push([7, 0]);
+                game_board[7][1].value = 1;
+                game_board[7][2].value = 1;
+                game_board[7][3].value = 1;
+                if(king_check("white")) {temp = true;}
+                game_board[7][1].value = 0;
+                game_board[7][2].value = 0;
+                game_board[7][3].value = 0;
+
+                if(!temp){
+                    castles[0][0] = true;
+                    this_path.push([7, 2]);
+                    this_path.push([7, 0]);
+                }
             }
-            //  Kingside castle
+            //  King side castle
             if(!isMoved[0][1] && !isMoved[0][2] && game_board[7][5].value === 0 && game_board[7][6].value === 0){
-                castles[0][1] = true;
-                this_path.push([7, 6]);
-                this_path.push([7, 7]);
+                game_board[7][5].value = 1;
+                game_board[7][6].value = 1;
+                if(king_check("white")) {temp = true;}
+                game_board[7][5].value = 0;
+                game_board[7][6].value = 0;
+
+                if(!temp){
+                    castles[0][1] = true;
+                    this_path.push([7, 6]);
+                    this_path.push([7, 7]);
+                }
             }
 
             if(isCheck){
@@ -489,17 +539,35 @@ class piece_King{
             if(x<7 && y<7 && game_board[x+1][y+1].value < 10){this_path.push([x+1, y+1]);}
 
             // Castling
-            //  Queenside castle
+            //  Queen side castle
             if(!isMoved[1][0] && !isMoved[1][1] && game_board[0][1].value === 0 && game_board[0][2].value === 0 && game_board[0][3].value === 0){
-                castles[1][0] = true;
-                this_path.push([0, 2]);
-                this_path.push([0, 0]);
+                game_board[0][1].value = 11;
+                game_board[0][2].value = 11;
+                game_board[0][3].value = 11;
+                if(king_check("black")) {temp = true;}
+                game_board[0][1].value = 0;
+                game_board[0][2].value = 0;
+                game_board[0][3].value = 0;
+
+                if(!temp){
+                    castles[1][0] = true;
+                    this_path.push([0, 2]);
+                    this_path.push([0, 0]);
+                }
             }
-            //  Kingside castle
+            //  King side castle
             if(!isMoved[1][1] && !isMoved[1][2] && game_board[0][5].value === 0 && game_board[0][6].value === 0){
-                castles[1][1] = true;
-                this_path.push([0, 6]);
-                this_path.push([0, 7]);
+                game_board[0][5].value = 11;
+                game_board[0][6].value = 11;
+                if(king_check("black")) {temp = true;}
+                game_board[0][5].value = 0;
+                game_board[0][6].value = 0;
+
+                if(!temp) {
+                    castles[1][1] = true;
+                    this_path.push([0, 6]);
+                    this_path.push([0, 7]);
+                }
             }
 
             if(isCheck){
@@ -514,13 +582,13 @@ class piece_King{
 
             if(color === "white"){
                 game_board[path[0]][path[1]].value = 1;
-                if(!king_check()){
+                if(!king_check("white")){
                     temp_path.push(path);
                 }
                 game_board[x][y].value = 1;
             }else{
                 game_board[path[0]][path[1]].value = 11;
-                if(!king_check()){
+                if(!king_check("black")){
                     temp_path.push(path);
                 }
                 game_board[x][y].value = 11;
@@ -532,11 +600,8 @@ class piece_King{
     }
 }
 
-function king_check(color){
+function get_king_location(color){
     let king_cell;
-    let diagonal_distance = [];
-    let check_piece = [];
-
     if(color === "white"){
         // white king loc
         game_board.forEach((line)=>{
@@ -552,6 +617,13 @@ function king_check(color){
             });
         });
     }
+    return king_cell;
+}
+function king_check(color){
+
+    let diagonal_distance = [];
+    let check_piece = [];
+    let king_cell = get_king_location(color);
 
     diagonal_distance.push(check_diagonal_distance(king_cell.x, king_cell.y));
     diagonal_distance.push(check_diagonal_distance(king_cell.x, 7-king_cell.y));
@@ -707,7 +779,7 @@ function king_check(color){
 function if_move_uncheck(color, piece, pos, path_list){
     let temp_list = [];
     let temp_value;
-    path_list.forEach((path, i)=>{
+    path_list.forEach((path)=>{
         temp_value = game_board[path[0]][path[1]].value;
         game_board[path[0]][path[1]].value = piece;
         game_board[pos[0]][pos[1]].value = 0;
@@ -738,13 +810,14 @@ function add_table() {
     // make board image
     let temp_table = "";
     let temp_color = true;
+
     for (let rows = 0; rows < 8; rows++) {
         let line = "<div class='line'>";
         for (let cols = 0; cols < 8; cols++) {
             if (temp_color) {
-                line += "<div class='cell white' draggable='true'></div>";
+                line += "<div class='cell_img white'></div>";
             } else {
-                line += "<div class='cell black' draggable='true'></div>";
+                line += "<div class='cell_img black'></div>";
             }
             temp_color = !temp_color;
         }
@@ -757,6 +830,17 @@ function add_table() {
         rank += `<div class='file'>${file_char[i]}</div>`;
     }
     temp_table += rank + "</div>";
+    chess_board_img_E.innerHTML = temp_table;
+
+    temp_table = "";
+    for (let rows = 0; rows < 8; rows++) {
+        let line = "<div class='line'>";
+        for (let cols = 0; cols < 8; cols++) {
+                line += "<div class='cell' draggable='true'></div>";
+        }
+        temp_table += line + "</div>";
+    }
+    temp_table += "</div>";
     chess_board_E.innerHTML = temp_table;
     cells = document.querySelectorAll(".cell");
 }
@@ -779,19 +863,34 @@ function update_chess_board(){
     //
     // }
     cells.forEach((cell,i)=> {
-        let index = game_board[parseInt(i/8)][i%8].value;
+        let image = game_board[parseInt(i/8)][i%8].image;
+        let color = game_board[parseInt(i/8)][i%8].color;
+
+        cell.innerHTML = '';
 
         // change to image
-        if (index > 10) {
-            cell.innerHTML = `${piece_code[index - 10]}`;
-            cell.style.color = "black";
-        }else if(index === 0){
-            cell.innerHTML = '';
-        }else{
-            cell.innerHTML = `${piece_code[index]}`;
-            cell.style.color = "white";
+        if(color === "white") {
+            // cell.innerHTML = `${piece_code[index]}`;
+            // cell.style.color = "white";
+            cell.innerHTML = image;
+        }else if(color === "black"){
+            // cell.innerHTML = `${piece_code[index - 10]}`;
+            // cell.style.color = "black";
+            cell.innerHTML = image;
         }
     });
+
+    // if(isCheck === "white"){
+    //     cells[get_king_location("white").index].innerHTML = "<div class='king_check'>K</div>";
+    // }else if(isCheck === "black"){
+    //     cells[get_king_location("black").index].innerHTML = "<div class='king_check'>K</div>";
+    // }
+
+    if(isCheck === "white"){
+        cells[get_king_location("white").index].innerHTML = `<div class='king_check'>${piece_img[0][1]}</div>`;
+    }else if(isCheck === "black"){
+        cells[get_king_location("black").index].innerHTML = `<div class='king_check'>${piece_img[1][1]}</div>`;
+    }
 }
 function console_chess_board(){
     let show_arr = Array.from({length:8}).map(()=>{return []});
@@ -804,10 +903,17 @@ function console_chess_board(){
 }
 function show_path(path_list){
     path_list.forEach((path)=>{
+        let cell = game_board[path[0]][path[1]];
+        let image = game_board[path[0]][path[1]].image;
         if(game_board[path[0]][path[1]].value === 0){
-            cells[game_board[path[0]][path[1]].index].innerHTML = "<div class='path'></div>";
+            cells[cell.index].innerHTML = "<div class='path'></div>";
         }else{
-            cells[game_board[path[0]][path[1]].index].innerHTML = `<div class='take'>${game_board[path[0]][path[1]].piece}</div>`;
+            // cells[game_board[path[0]][path[1]].index].innerHTML = `<div class='take'>${game_board[path[0]][path[1]].piece}</div>`;
+            if(cell.color === "white"){
+                cells[cell.index].innerHTML = `<div class='take'>${image}</div>`;
+            }else{
+                cells[cell.index].innerHTML = `<div class='take'>${image}</div>`;
+            }
         }
     });
 }
@@ -852,7 +958,6 @@ function add_piece_event(){
             if(!isSelected){
                 isSelected = true;
 
-                // move = [{mR:parseInt(i/8), mF:parseInt(i%8)}];
                 move = [[parseInt(i/8), parseInt(i%8)]];
                 select = game_board[parseInt(i/8)][parseInt(i%8)];
 
@@ -907,43 +1012,25 @@ function add_piece_event(){
                         }
 
                         // castling
-                        if(castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                        if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
                             game_board[7][3].value = 5;
                             game_board[7][0].value = 0;
                             move[1][1] = 2;
                         }
-                        if(castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                        if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
                             game_board[7][5].value = 5;
                             game_board[7][7].value = 0;
                             move[1][1] = 6;
                         }
-                        if(castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                        if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
                             game_board[0][3].value = 15;
                             game_board[0][0].value = 0;
                             move[1][1] = 2;
                         }
-                        if(castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                        if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
                             game_board[0][5].value = 15;
                             game_board[0][7].value = 0;
                             move[1][1] = 6;
-                        }
-
-                        // move
-                        game_board[move[1][0]][move[1][1]].value = select.value;
-                        game_board[move[0][0]][move[0][1]].value = 0;
-                        if(path[2]){
-                            game_board[path[2][0]][path[2][1]].value = 0;
-                        }
-
-                        game_board.forEach((line)=>{
-                            line.forEach((cell)=>{
-                                cell.update_cell();
-                            });
-                        });
-
-                        if(king_check("white") || king_check("black")) {
-                            isCheck = true;
-                            check_game_end();
                         }
 
                         if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
@@ -965,7 +1052,31 @@ function add_piece_event(){
                             isMoved[1][2] = true;
                         }
 
+                        // move
+                        game_board[move[1][0]][move[1][1]].value = select.value;
+                        game_board[move[0][0]][move[0][1]].value = 0;
+                        if(path[2]){
+                            game_board[path[2][0]][path[2][1]].value = 0;
+                        }
+
+                        game_board.forEach((line)=>{
+                            line.forEach((cell)=>{
+                                cell.update_cell();
+                            });
+                        });
+
+                        if(king_check("white")) {
+                            isCheck = "white";
+                            check_game_end();
+                        }else if(king_check("black")){
+                            isCheck = "black";
+                            check_game_end();
+                        }else{
+                            isCheck = false;
+                        }
+
                         update_chess_board();
+                        update_notation_table();
                         turn = !turn;
                     }
                 });
