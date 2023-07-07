@@ -7,21 +7,21 @@ const piece_code = ['','K','Q','B','N','R','P'];
 const piece_img = [
     [
         "",
-        "<img src='./Chess Image/white/King.jpg' alt='K'>",
-        "<img src='./Chess Image/white/Queen.jpg' alt='Q'>",
-        "<img src='./Chess Image/white/Bishop.jpg' alt='B'>",
-        "<img src='./Chess Image/white/Knight.jpg' alt='N'>",
-        "<img src='./Chess Image/white/Rook.jpg' alt='R'>",
-        "<img src='./Chess Image/white/Pawn.jpg' alt='P'>",
+        "<img src='./Chess Image/white/King.png' alt='K'>",
+        "<img src='./Chess Image/white/Queen.png' alt='Q'>",
+        "<img src='./Chess Image/white/Bishop.png' alt='B'>",
+        "<img src='./Chess Image/white/Knight.png' alt='N'>",
+        "<img src='./Chess Image/white/Rook.png' alt='R'>",
+        "<img src='./Chess Image/white/Pawn.png' alt='P'>",
     ],
     [
         "",
         "<img src='./Chess Image/black/King.png' alt='K'>",
-        "<img src='./Chess Image/black/Queen.jpg' alt='Q'>",
-        "<img src='./Chess Image/black/Bishop.jpg' alt='B'>",
-        "<img src='./Chess Image/black/Knight.jpg' alt='N'>",
-        "<img src='./Chess Image/black/Rook.jpg' alt='R'>",
-        "<img src='./Chess Image/black/Pawn.jpg' alt='P'>",
+        "<img src='./Chess Image/black/Queen.png' alt='Q'>",
+        "<img src='./Chess Image/black/Bishop.png' alt='B'>",
+        "<img src='./Chess Image/black/Knight.png' alt='N'>",
+        "<img src='./Chess Image/black/Rook.png' alt='R'>",
+        "<img src='./Chess Image/black/Pawn.png' alt='P'>",
     ]
 ];
 
@@ -39,25 +39,15 @@ let select;
 let selectedPath = [];
 let last_move;
 
-// let game_board = [
-//     [15,14,13,12,11,13,14,15],
-//     [16,16,16,16,16,16,16,16],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [0,0,0,0,0,0,0,0],
-//     [6,6,6,6,6,6,6,6],
-//     [5,4,3,2,1,3,4,5],
-// ];
 let game_board = [
-    [15,0,0,0,11,0,0,15],
+    [15,14,13,12,11,13,14,15],
     [16,16,16,16,16,16,16,16],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [6,6,6,6,6,6,6,6],
-    [5,0,0,0,1,0,0,5],
+    [5,4,3,2,1,3,4,5],
 ];
 
 class board_cell{
@@ -850,9 +840,13 @@ function update_notation_table(){
 
         let temp = `<tr>
         <td class="notation_count">${i+1}</td>
-        <td class="notation_white">${notation[i][0]}</td>
-        <td class="notation_black">${notation[i][1]}</td>
-        </tr>`;
+        <td class="notation_white">${notation[i][0]}</td>`;
+        if(notation[i][1] === undefined){
+            temp += `<td class="notation_black"></td></tr>`;
+        }else{
+            temp += `<td class="notation_black">${notation[i][1]}</td></tr>`;
+        }
+
         notation_table_E.innerHTML += temp;
     }
 }
@@ -950,6 +944,31 @@ function check_diagonal_distance(a,b){
     else if(a > b) return b;
     else return a;
 }
+function first_click(){
+    isSelected = true;
+
+    move = [[parseInt(i/8), parseInt(i%8)]];
+    select = game_board[parseInt(i/8)][parseInt(i%8)];
+
+    if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
+        console.log("not your turn");
+        isSelected = false;
+        return;
+    }
+
+    if(select.value !== 0){
+        move_piece = select.piece;
+        selectedPath = select.get_path();
+        if(!selectedPath){
+            isSelected = false;
+            return;
+        }
+        show_path(selectedPath);
+    }else{
+        isSelected = false;
+    }
+}
+function second_click(){}
 function add_piece_event(){
     cells.forEach((cell,i)=>{
         cell.addEventListener("click",()=>{
@@ -1076,6 +1095,19 @@ function add_piece_event(){
                         }
 
                         update_chess_board();
+                        if(turn){
+                            if(game_board[move[1][0]][move[1][1]].piece === 'P'){
+                                notation.push([ file_char[move[1][1]] + (8-move[1][0]) ]);
+                            }else{
+                                notation.push([ game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) ]);
+                            }
+                        }else{
+                            if(game_board[move[1][0]][move[1][1]].piece === 'P'){
+                                notation[notation.length-1].push([ file_char[move[1][1]] + (8-move[1][0]) ]);
+                            }else {
+                                notation[notation.length-1].push( game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) );
+                            }
+                        }
                         update_notation_table();
                         turn = !turn;
                     }
@@ -1085,6 +1117,31 @@ function add_piece_event(){
 
         cell.addEventListener("dragstart",()=>{
             // first click
+
+            update_chess_board();
+            if(isGameEnd) return;
+            isSelected = true;
+
+            move = [[parseInt(i/8), parseInt(i%8)]];
+            select = game_board[parseInt(i/8)][parseInt(i%8)];
+
+            if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
+                console.log("not your turn");
+                isSelected = false;
+                return;
+            }
+
+            if(select.value !== 0){
+                move_piece = select.piece;
+                selectedPath = select.get_path();
+                if(!selectedPath){
+                    isSelected = false;
+                    return;
+                }
+                show_path(selectedPath);
+            }else{
+                isSelected = false;
+            }
         });
         cell.addEventListener("dragover",(e)=>{
             e.preventDefault();
@@ -1092,6 +1149,109 @@ function add_piece_event(){
         cell.addEventListener("drop",(e)=>{
             e.preventDefault();
             // second click
+
+            update_chess_board();
+            if(isGameEnd) return;
+            isSelected = false;
+            move.push([parseInt(i/8), parseInt(i%8)]);
+
+            selectedPath.forEach((path)=>{
+                if(path[0] === move[1][0] && path[1] === move[1][1]){
+                    last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
+
+                    // promotion
+                    if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
+                        let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                        let temp = true;
+
+                        while(temp){
+                            if(isNaN(promotion) || promotion > 4 || promotion < 1){
+                                promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                            }else{
+                                temp = false;
+                            }
+                        }
+                        if(promotion === 1){            // Queen
+                            select.value = 2;
+                        }else if(promotion === 2){      // Rook
+                            select.value = 5;
+                        }else if(promotion === 3){      // Bishop
+                            select.value = 3;
+                        }else if(promotion === 4){      // Knight
+                            select.value = 4;
+                        }
+                        if(!turn) select.value += 10;
+                    }
+
+                    // castling
+                    if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                        game_board[7][3].value = 5;
+                        game_board[7][0].value = 0;
+                        move[1][1] = 2;
+                    }
+                    if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                        game_board[7][5].value = 5;
+                        game_board[7][7].value = 0;
+                        move[1][1] = 6;
+                    }
+                    if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                        game_board[0][3].value = 15;
+                        game_board[0][0].value = 0;
+                        move[1][1] = 2;
+                    }
+                    if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                        game_board[0][5].value = 15;
+                        game_board[0][7].value = 0;
+                        move[1][1] = 6;
+                    }
+
+                    if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
+                        isMoved[0][0] = true;
+                    }
+                    if(move[0][0] === 7 && move[0][1] === 4){       // white King
+                        isMoved[0][1] = true;
+                    }
+                    if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
+                        isMoved[0][2] = true;
+                    }
+                    if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
+                        isMoved[1][0] = true;
+                    }
+                    if(move[0][0] === 0 && move[0][1] === 4){       // black King
+                        isMoved[1][1] = true;
+                    }
+                    if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
+                        isMoved[1][2] = true;
+                    }
+
+                    // move
+                    game_board[move[1][0]][move[1][1]].value = select.value;
+                    game_board[move[0][0]][move[0][1]].value = 0;
+                    if(path[2]){
+                        game_board[path[2][0]][path[2][1]].value = 0;
+                    }
+
+                    game_board.forEach((line)=>{
+                        line.forEach((cell)=>{
+                            cell.update_cell();
+                        });
+                    });
+
+                    if(king_check("white")) {
+                        isCheck = "white";
+                        check_game_end();
+                    }else if(king_check("black")){
+                        isCheck = "black";
+                        check_game_end();
+                    }else{
+                        isCheck = false;
+                    }
+
+                    update_chess_board();
+                    update_notation_table();
+                    turn = !turn;
+                }
+            });
         });
     });
 }
