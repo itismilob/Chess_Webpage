@@ -944,7 +944,7 @@ function check_diagonal_distance(a,b){
     else if(a > b) return b;
     else return a;
 }
-function first_click(){
+function first_click(cell, i){
     isSelected = true;
 
     move = [[parseInt(i/8), parseInt(i%8)]];
@@ -968,290 +968,414 @@ function first_click(){
         isSelected = false;
     }
 }
-function second_click(){}
+function second_click(cell, i){
+
+    isSelected = false;
+    move.push([parseInt(i/8), parseInt(i%8)]);
+
+    selectedPath.forEach((path)=>{
+        if(path[0] === move[1][0] && path[1] === move[1][1]){
+            last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
+
+            // promotion
+            if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
+                let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                let temp = true;
+
+                while(temp){
+                    if(isNaN(promotion) || promotion > 4 || promotion < 1){
+                        promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                    }else{
+                        temp = false;
+                    }
+                }
+                if(promotion === 1){            // Queen
+                    select.value = 2;
+                }else if(promotion === 2){      // Rook
+                    select.value = 5;
+                }else if(promotion === 3){      // Bishop
+                    select.value = 3;
+                }else if(promotion === 4){      // Knight
+                    select.value = 4;
+                }
+                if(!turn) select.value += 10;
+            }
+
+            // castling
+            if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                game_board[7][3].value = 5;
+                game_board[7][0].value = 0;
+                move[1][1] = 2;
+            }
+            if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                game_board[7][5].value = 5;
+                game_board[7][7].value = 0;
+                move[1][1] = 6;
+            }
+            if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                game_board[0][3].value = 15;
+                game_board[0][0].value = 0;
+                move[1][1] = 2;
+            }
+            if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                game_board[0][5].value = 15;
+                game_board[0][7].value = 0;
+                move[1][1] = 6;
+            }
+
+            if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
+                isMoved[0][0] = true;
+            }
+            if(move[0][0] === 7 && move[0][1] === 4){       // white King
+                isMoved[0][1] = true;
+            }
+            if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
+                isMoved[0][2] = true;
+            }
+            if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
+                isMoved[1][0] = true;
+            }
+            if(move[0][0] === 0 && move[0][1] === 4){       // black King
+                isMoved[1][1] = true;
+            }
+            if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
+                isMoved[1][2] = true;
+            }
+
+            // move
+            game_board[move[1][0]][move[1][1]].value = select.value;
+            game_board[move[0][0]][move[0][1]].value = 0;
+            if(path[2]){
+                game_board[path[2][0]][path[2][1]].value = 0;
+            }
+
+            game_board.forEach((line)=>{
+                line.forEach((cell)=>{
+                    cell.update_cell();
+                });
+            });
+
+            if(king_check("white")) {
+                isCheck = "white";
+                check_game_end();
+            }else if(king_check("black")){
+                isCheck = "black";
+                check_game_end();
+            }else{
+                isCheck = false;
+            }
+            console.log(move[0][0]*8 + move[0][1]);
+            console.log(game_board[move[0][0]][move[0][1]].index);
+
+            cells[game_board[move[0][0]][move[0][1]].index].innerHTML = `<div class='last_move'></div>`;
+            cells[game_board[move[1][0]][move[1][1]].index].innerHTML = `<div class='last_move'></div>`;
+
+            update_chess_board();
+            if(turn){
+                if(game_board[move[1][0]][move[1][1]].piece === 'P'){
+                    notation.push([ file_char[move[1][1]] + (8-move[1][0]) ]);
+                }else{
+                    notation.push([ game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) ]);
+                }
+            }else{
+                if(game_board[move[1][0]][move[1][1]].piece === 'P'){
+                    notation[notation.length-1].push([ file_char[move[1][1]] + (8-move[1][0]) ]);
+                }else {
+                    notation[notation.length-1].push( game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) );
+                }
+            }
+            update_notation_table();
+            turn = !turn;
+        }
+    });
+}
 function add_piece_event(){
     cells.forEach((cell,i)=>{
         cell.addEventListener("click",()=>{
             update_chess_board();
             if(isGameEnd) return;
             if(!isSelected){
-                isSelected = true;
-
-                move = [[parseInt(i/8), parseInt(i%8)]];
-                select = game_board[parseInt(i/8)][parseInt(i%8)];
-
-                if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
-                    console.log("not your turn");
-                    isSelected = false;
-                    return;
-                }
-
-                if(select.value !== 0){
-                    move_piece = select.piece;
-                    selectedPath = select.get_path();
-                    if(!selectedPath){
-                        isSelected = false;
-                        return;
-                    }
-                    show_path(selectedPath);
-                }else{
-                    isSelected = false;
-                }
+                first_click(cell, i);
+                // isSelected = true;
+                //
+                // move = [[parseInt(i/8), parseInt(i%8)]];
+                // select = game_board[parseInt(i/8)][parseInt(i%8)];
+                //
+                // if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
+                //     console.log("not your turn");
+                //     isSelected = false;
+                //     return;
+                // }
+                //
+                // if(select.value !== 0){
+                //     move_piece = select.piece;
+                //     selectedPath = select.get_path();
+                //     if(!selectedPath){
+                //         isSelected = false;
+                //         return;
+                //     }
+                //     show_path(selectedPath);
+                // }else{
+                //     isSelected = false;
+                // }
 
             }else{
-                isSelected = false;
-                move.push([parseInt(i/8), parseInt(i%8)]);
-
-                selectedPath.forEach((path)=>{
-                    if(path[0] === move[1][0] && path[1] === move[1][1]){
-                        last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
-
-                        // promotion
-                        if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
-                            let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
-                            let temp = true;
-
-                            while(temp){
-                                if(isNaN(promotion) || promotion > 4 || promotion < 1){
-                                    promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
-                                }else{
-                                    temp = false;
-                                }
-                            }
-                            if(promotion === 1){            // Queen
-                                select.value = 2;
-                            }else if(promotion === 2){      // Rook
-                                select.value = 5;
-                            }else if(promotion === 3){      // Bishop
-                                select.value = 3;
-                            }else if(promotion === 4){      // Knight
-                                select.value = 4;
-                            }
-                            if(!turn) select.value += 10;
-                        }
-
-                        // castling
-                        if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
-                            game_board[7][3].value = 5;
-                            game_board[7][0].value = 0;
-                            move[1][1] = 2;
-                        }
-                        if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
-                            game_board[7][5].value = 5;
-                            game_board[7][7].value = 0;
-                            move[1][1] = 6;
-                        }
-                        if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
-                            game_board[0][3].value = 15;
-                            game_board[0][0].value = 0;
-                            move[1][1] = 2;
-                        }
-                        if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
-                            game_board[0][5].value = 15;
-                            game_board[0][7].value = 0;
-                            move[1][1] = 6;
-                        }
-
-                        if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
-                            isMoved[0][0] = true;
-                        }
-                        if(move[0][0] === 7 && move[0][1] === 4){       // white King
-                            isMoved[0][1] = true;
-                        }
-                        if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
-                            isMoved[0][2] = true;
-                        }
-                        if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
-                            isMoved[1][0] = true;
-                        }
-                        if(move[0][0] === 0 && move[0][1] === 4){       // black King
-                            isMoved[1][1] = true;
-                        }
-                        if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
-                            isMoved[1][2] = true;
-                        }
-
-                        // move
-                        game_board[move[1][0]][move[1][1]].value = select.value;
-                        game_board[move[0][0]][move[0][1]].value = 0;
-                        if(path[2]){
-                            game_board[path[2][0]][path[2][1]].value = 0;
-                        }
-
-                        game_board.forEach((line)=>{
-                            line.forEach((cell)=>{
-                                cell.update_cell();
-                            });
-                        });
-
-                        if(king_check("white")) {
-                            isCheck = "white";
-                            check_game_end();
-                        }else if(king_check("black")){
-                            isCheck = "black";
-                            check_game_end();
-                        }else{
-                            isCheck = false;
-                        }
-
-                        update_chess_board();
-                        if(turn){
-                            if(game_board[move[1][0]][move[1][1]].piece === 'P'){
-                                notation.push([ file_char[move[1][1]] + (8-move[1][0]) ]);
-                            }else{
-                                notation.push([ game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) ]);
-                            }
-                        }else{
-                            if(game_board[move[1][0]][move[1][1]].piece === 'P'){
-                                notation[notation.length-1].push([ file_char[move[1][1]] + (8-move[1][0]) ]);
-                            }else {
-                                notation[notation.length-1].push( game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) );
-                            }
-                        }
-                        update_notation_table();
-                        turn = !turn;
-                    }
-                });
+                second_click(cell, i);
+                // isSelected = false;
+                // move.push([parseInt(i/8), parseInt(i%8)]);
+                //
+                // selectedPath.forEach((path)=>{
+                //     if(path[0] === move[1][0] && path[1] === move[1][1]){
+                //         last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
+                //
+                //         // promotion
+                //         if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
+                //             let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                //             let temp = true;
+                //
+                //             while(temp){
+                //                 if(isNaN(promotion) || promotion > 4 || promotion < 1){
+                //                     promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+                //                 }else{
+                //                     temp = false;
+                //                 }
+                //             }
+                //             if(promotion === 1){            // Queen
+                //                 select.value = 2;
+                //             }else if(promotion === 2){      // Rook
+                //                 select.value = 5;
+                //             }else if(promotion === 3){      // Bishop
+                //                 select.value = 3;
+                //             }else if(promotion === 4){      // Knight
+                //                 select.value = 4;
+                //             }
+                //             if(!turn) select.value += 10;
+                //         }
+                //
+                //         // castling
+                //         if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                //             game_board[7][3].value = 5;
+                //             game_board[7][0].value = 0;
+                //             move[1][1] = 2;
+                //         }
+                //         if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                //             game_board[7][5].value = 5;
+                //             game_board[7][7].value = 0;
+                //             move[1][1] = 6;
+                //         }
+                //         if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
+                //             game_board[0][3].value = 15;
+                //             game_board[0][0].value = 0;
+                //             move[1][1] = 2;
+                //         }
+                //         if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
+                //             game_board[0][5].value = 15;
+                //             game_board[0][7].value = 0;
+                //             move[1][1] = 6;
+                //         }
+                //
+                //         if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
+                //             isMoved[0][0] = true;
+                //         }
+                //         if(move[0][0] === 7 && move[0][1] === 4){       // white King
+                //             isMoved[0][1] = true;
+                //         }
+                //         if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
+                //             isMoved[0][2] = true;
+                //         }
+                //         if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
+                //             isMoved[1][0] = true;
+                //         }
+                //         if(move[0][0] === 0 && move[0][1] === 4){       // black King
+                //             isMoved[1][1] = true;
+                //         }
+                //         if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
+                //             isMoved[1][2] = true;
+                //         }
+                //
+                //         // move
+                //         game_board[move[1][0]][move[1][1]].value = select.value;
+                //         game_board[move[0][0]][move[0][1]].value = 0;
+                //         if(path[2]){
+                //             game_board[path[2][0]][path[2][1]].value = 0;
+                //         }
+                //
+                //         game_board.forEach((line)=>{
+                //             line.forEach((cell)=>{
+                //                 cell.update_cell();
+                //             });
+                //         });
+                //
+                //         if(king_check("white")) {
+                //             isCheck = "white";
+                //             check_game_end();
+                //         }else if(king_check("black")){
+                //             isCheck = "black";
+                //             check_game_end();
+                //         }else{
+                //             isCheck = false;
+                //         }
+                //
+                //         update_chess_board();
+                //         if(turn){
+                //             if(game_board[move[1][0]][move[1][1]].piece === 'P'){
+                //                 notation.push([ file_char[move[1][1]] + (8-move[1][0]) ]);
+                //             }else{
+                //                 notation.push([ game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) ]);
+                //             }
+                //         }else{
+                //             if(game_board[move[1][0]][move[1][1]].piece === 'P'){
+                //                 notation[notation.length-1].push([ file_char[move[1][1]] + (8-move[1][0]) ]);
+                //             }else {
+                //                 notation[notation.length-1].push( game_board[move[1][0]][move[1][1]].piece + file_char[move[1][1]] + (8-move[1][0]) );
+                //             }
+                //         }
+                //         update_notation_table();
+                //         turn = !turn;
+                //     }
+                // });
             }
         });
 
         cell.addEventListener("dragstart",()=>{
+            first_click(cell, i);
             // first click
-
-            update_chess_board();
-            if(isGameEnd) return;
-            isSelected = true;
-
-            move = [[parseInt(i/8), parseInt(i%8)]];
-            select = game_board[parseInt(i/8)][parseInt(i%8)];
-
-            if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
-                console.log("not your turn");
-                isSelected = false;
-                return;
-            }
-
-            if(select.value !== 0){
-                move_piece = select.piece;
-                selectedPath = select.get_path();
-                if(!selectedPath){
-                    isSelected = false;
-                    return;
-                }
-                show_path(selectedPath);
-            }else{
-                isSelected = false;
-            }
+            //
+            // update_chess_board();
+            // if(isGameEnd) return;
+            // isSelected = true;
+            //
+            // move = [[parseInt(i/8), parseInt(i%8)]];
+            // select = game_board[parseInt(i/8)][parseInt(i%8)];
+            //
+            // if((select.color === "white" && !turn) || (select.color === "black" && turn)) {
+            //     console.log("not your turn");
+            //     isSelected = false;
+            //     return;
+            // }
+            //
+            // if(select.value !== 0){
+            //     move_piece = select.piece;
+            //     selectedPath = select.get_path();
+            //     if(!selectedPath){
+            //         isSelected = false;
+            //         return;
+            //     }
+            //     show_path(selectedPath);
+            // }else{
+            //     isSelected = false;
+            // }
         });
         cell.addEventListener("dragover",(e)=>{
             e.preventDefault();
         });
         cell.addEventListener("drop",(e)=>{
             e.preventDefault();
+            second_click(cell, i);
             // second click
-
-            update_chess_board();
-            if(isGameEnd) return;
-            isSelected = false;
-            move.push([parseInt(i/8), parseInt(i%8)]);
-
-            selectedPath.forEach((path)=>{
-                if(path[0] === move[1][0] && path[1] === move[1][1]){
-                    last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
-
-                    // promotion
-                    if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
-                        let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
-                        let temp = true;
-
-                        while(temp){
-                            if(isNaN(promotion) || promotion > 4 || promotion < 1){
-                                promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
-                            }else{
-                                temp = false;
-                            }
-                        }
-                        if(promotion === 1){            // Queen
-                            select.value = 2;
-                        }else if(promotion === 2){      // Rook
-                            select.value = 5;
-                        }else if(promotion === 3){      // Bishop
-                            select.value = 3;
-                        }else if(promotion === 4){      // Knight
-                            select.value = 4;
-                        }
-                        if(!turn) select.value += 10;
-                    }
-
-                    // castling
-                    if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
-                        game_board[7][3].value = 5;
-                        game_board[7][0].value = 0;
-                        move[1][1] = 2;
-                    }
-                    if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
-                        game_board[7][5].value = 5;
-                        game_board[7][7].value = 0;
-                        move[1][1] = 6;
-                    }
-                    if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
-                        game_board[0][3].value = 15;
-                        game_board[0][0].value = 0;
-                        move[1][1] = 2;
-                    }
-                    if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
-                        game_board[0][5].value = 15;
-                        game_board[0][7].value = 0;
-                        move[1][1] = 6;
-                    }
-
-                    if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
-                        isMoved[0][0] = true;
-                    }
-                    if(move[0][0] === 7 && move[0][1] === 4){       // white King
-                        isMoved[0][1] = true;
-                    }
-                    if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
-                        isMoved[0][2] = true;
-                    }
-                    if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
-                        isMoved[1][0] = true;
-                    }
-                    if(move[0][0] === 0 && move[0][1] === 4){       // black King
-                        isMoved[1][1] = true;
-                    }
-                    if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
-                        isMoved[1][2] = true;
-                    }
-
-                    // move
-                    game_board[move[1][0]][move[1][1]].value = select.value;
-                    game_board[move[0][0]][move[0][1]].value = 0;
-                    if(path[2]){
-                        game_board[path[2][0]][path[2][1]].value = 0;
-                    }
-
-                    game_board.forEach((line)=>{
-                        line.forEach((cell)=>{
-                            cell.update_cell();
-                        });
-                    });
-
-                    if(king_check("white")) {
-                        isCheck = "white";
-                        check_game_end();
-                    }else if(king_check("black")){
-                        isCheck = "black";
-                        check_game_end();
-                    }else{
-                        isCheck = false;
-                    }
-
-                    update_chess_board();
-                    update_notation_table();
-                    turn = !turn;
-                }
-            });
+            //
+            // update_chess_board();
+            // if(isGameEnd) return;
+            // isSelected = false;
+            // move.push([parseInt(i/8), parseInt(i%8)]);
+            //
+            // selectedPath.forEach((path)=>{
+            //     if(path[0] === move[1][0] && path[1] === move[1][1]){
+            //         last_move = [game_board[move[0][0]][move[0][1]], game_board[move[1][0]][move[1][1]]];
+            //
+            //         // promotion
+            //         if((select.value === 6 && move[0][0] === 1) || (select.value === 16 && move[0][0] === 6)){
+            //             let promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+            //             let temp = true;
+            //
+            //             while(temp){
+            //                 if(isNaN(promotion) || promotion > 4 || promotion < 1){
+            //                     promotion = parseInt(prompt("1:Queen 2:Rook 3:Bishop 4:Knight"));
+            //                 }else{
+            //                     temp = false;
+            //                 }
+            //             }
+            //             if(promotion === 1){            // Queen
+            //                 select.value = 2;
+            //             }else if(promotion === 2){      // Rook
+            //                 select.value = 5;
+            //             }else if(promotion === 3){      // Bishop
+            //                 select.value = 3;
+            //             }else if(promotion === 4){      // Knight
+            //                 select.value = 4;
+            //             }
+            //             if(!turn) select.value += 10;
+            //         }
+            //
+            //         // castling
+            //         if(!isMoved[0][1] && select.value === 1 && castles[0][0] && (move[1][1] === 2 || move[1][1] === 0)){
+            //             game_board[7][3].value = 5;
+            //             game_board[7][0].value = 0;
+            //             move[1][1] = 2;
+            //         }
+            //         if(!isMoved[0][1] && select.value === 1 && castles[0][1] && (move[1][1] === 6 || move[1][1] === 7)){
+            //             game_board[7][5].value = 5;
+            //             game_board[7][7].value = 0;
+            //             move[1][1] = 6;
+            //         }
+            //         if(!isMoved[1][1] && select.value === 11 && castles[1][0] && (move[1][1] === 2 || move[1][1] === 0)){
+            //             game_board[0][3].value = 15;
+            //             game_board[0][0].value = 0;
+            //             move[1][1] = 2;
+            //         }
+            //         if(!isMoved[1][1] && select.value === 11 && castles[1][1] && (move[1][1] === 6 || move[1][1] === 7)){
+            //             game_board[0][5].value = 15;
+            //             game_board[0][7].value = 0;
+            //             move[1][1] = 6;
+            //         }
+            //
+            //         if(move[0][0] === 7 && move[0][1] === 0){       // white left Rook
+            //             isMoved[0][0] = true;
+            //         }
+            //         if(move[0][0] === 7 && move[0][1] === 4){       // white King
+            //             isMoved[0][1] = true;
+            //         }
+            //         if(move[0][0] === 7 && move[0][1] === 7){       // white right Rook
+            //             isMoved[0][2] = true;
+            //         }
+            //         if(move[0][0] === 0 && move[0][1] === 0){       // black left Rook
+            //             isMoved[1][0] = true;
+            //         }
+            //         if(move[0][0] === 0 && move[0][1] === 4){       // black King
+            //             isMoved[1][1] = true;
+            //         }
+            //         if(move[0][0] === 0 && move[0][1] === 7){       // black right Rook
+            //             isMoved[1][2] = true;
+            //         }
+            //
+            //         // move
+            //         game_board[move[1][0]][move[1][1]].value = select.value;
+            //         game_board[move[0][0]][move[0][1]].value = 0;
+            //         if(path[2]){
+            //             game_board[path[2][0]][path[2][1]].value = 0;
+            //         }
+            //
+            //         game_board.forEach((line)=>{
+            //             line.forEach((cell)=>{
+            //                 cell.update_cell();
+            //             });
+            //         });
+            //
+            //         if(king_check("white")) {
+            //             isCheck = "white";
+            //             check_game_end();
+            //         }else if(king_check("black")){
+            //             isCheck = "black";
+            //             check_game_end();
+            //         }else{
+            //             isCheck = false;
+            //         }
+            //
+            //         update_chess_board();
+            //         update_notation_table();
+            //         turn = !turn;
+            //     }
+            // });
         });
     });
 }
