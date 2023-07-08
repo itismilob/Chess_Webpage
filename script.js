@@ -7,21 +7,21 @@ const piece_code = ['','K','Q','B','N','R','P'];
 const piece_img = [
     [
         "",
-        "<img src='./Chess Image/white/King.png' alt='K'>",
-        "<img src='./Chess Image/white/Queen.png' alt='Q'>",
-        "<img src='./Chess Image/white/Bishop.png' alt='B'>",
-        "<img src='./Chess Image/white/Knight.png' alt='N'>",
-        "<img src='./Chess Image/white/Rook.png' alt='R'>",
-        "<img src='./Chess Image/white/Pawn.png' alt='P'>",
+        "<img src='./Chess Image/white/King.svg' alt='K'>",
+        "<img src='./Chess Image/white/Queen.svg' alt='Q'>",
+        "<img src='./Chess Image/white/Bishop.svg' alt='B'>",
+        "<img src='./Chess Image/white/Knight.svg' alt='N'>",
+        "<img src='./Chess Image/white/Rook.svg' alt='R'>",
+        "<img src='./Chess Image/white/Pawn.svg' alt='P'>",
     ],
     [
         "",
-        "<img src='./Chess Image/black/King.png' alt='K'>",
-        "<img src='./Chess Image/black/Queen.png' alt='Q'>",
-        "<img src='./Chess Image/black/Bishop.png' alt='B'>",
-        "<img src='./Chess Image/black/Knight.png' alt='N'>",
-        "<img src='./Chess Image/black/Rook.png' alt='R'>",
-        "<img src='./Chess Image/black/Pawn.png' alt='P'>",
+        "<img src='./Chess Image/black/King.svg' alt='K'>",
+        "<img src='./Chess Image/black/Queen.svg' alt='Q'>",
+        "<img src='./Chess Image/black/Bishop.svg' alt='B'>",
+        "<img src='./Chess Image/black/Knight.svg' alt='N'>",
+        "<img src='./Chess Image/black/Rook.svg' alt='R'>",
+        "<img src='./Chess Image/black/Pawn.svg' alt='P'>",
     ]
 ];
 
@@ -851,34 +851,21 @@ function update_notation_table(){
     }
 }
 function update_chess_board(){
-    // if(board_turn){
-    //
-    // }else{
-    //
-    // }
     cells.forEach((cell,i)=> {
         let image = game_board[parseInt(i/8)][i%8].image;
         let color = game_board[parseInt(i/8)][i%8].color;
 
         cell.innerHTML = '';
-
-        // change to image
-        if(color === "white") {
-            // cell.innerHTML = `${piece_code[index]}`;
-            // cell.style.color = "white";
-            cell.innerHTML = image;
-        }else if(color === "black"){
-            // cell.innerHTML = `${piece_code[index - 10]}`;
-            // cell.style.color = "black";
+        if(color === "white" || color === "black"){
             cell.innerHTML = image;
         }
+
     });
 
-    // if(isCheck === "white"){
-    //     cells[get_king_location("white").index].innerHTML = "<div class='king_check'>K</div>";
-    // }else if(isCheck === "black"){
-    //     cells[get_king_location("black").index].innerHTML = "<div class='king_check'>K</div>";
-    // }
+    if(move[0] !== undefined && move[1] !== undefined){
+        cells[game_board[move[0][0]][move[0][1]].index].innerHTML = `<div class='last_move'></div>`;
+        cells[game_board[move[1][0]][move[1][1]].index].innerHTML = `<div class='last_move'>${game_board[move[1][0]][move[1][1]].image}</div>`;
+    }
 
     if(isCheck === "white"){
         cells[get_king_location("white").index].innerHTML = `<div class='king_check'>${piece_img[0][1]}</div>`;
@@ -1064,11 +1051,7 @@ function second_click(cell, i){
             }else{
                 isCheck = false;
             }
-            console.log(move[0][0]*8 + move[0][1]);
-            console.log(game_board[move[0][0]][move[0][1]].index);
 
-            cells[game_board[move[0][0]][move[0][1]].index].innerHTML = `<div class='last_move'></div>`;
-            cells[game_board[move[1][0]][move[1][1]].index].innerHTML = `<div class='last_move'></div>`;
 
             update_chess_board();
             if(turn){
@@ -1238,6 +1221,7 @@ function add_piece_event(){
         });
 
         cell.addEventListener("dragstart",()=>{
+            if(isGameEnd) return;
             first_click(cell, i);
             // first click
             //
@@ -1271,6 +1255,7 @@ function add_piece_event(){
         });
         cell.addEventListener("drop",(e)=>{
             e.preventDefault();
+            if(isGameEnd) return;
             second_click(cell, i);
             // second click
             //
