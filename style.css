@@ -1,3 +1,8 @@
+:root{
+    --cell_size : 60px;
+    --numbering_size : 10px;
+}
+
 html, body{
     width: 100%;
     height: 100%;
@@ -17,8 +22,8 @@ body{
 
 /*  Game board  */
 .chess_board_img{
-    width: 410px;
-    height: 410px;
+    width: calc(var(--cell_size)*8 + var(--numbering_size));
+    height: calc(var(--cell_size)*8 + var(--numbering_size));
     display: grid;
     position: relative;
     overflow: hidden;
@@ -28,8 +33,8 @@ body{
     box-shadow: inset 0 0 0 0.1px black, 0 0 5px black;
 }
 .chess_board{
-    width: 400px;
-    height: 400px;
+    width: calc(var(--cell_size)*8);
+    height: calc(var(--cell_size)*8);
     display: grid;
     position: absolute;
 
@@ -41,16 +46,16 @@ body{
     display: flex;
 }
 .cell_img{
-    width: 50px;
-    height: 50px;
+    width: var(--cell_size);
+    height: var(--cell_size);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: inset 0 0 0 0.1px black;
 }
 .cell{
-    width: 50px;
-    height: 50px;
+    width: var(--cell_size);
+    height: var(--cell_size);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -62,8 +67,8 @@ body{
     color: white;
 }
 img{
-    width: 50px;
-    height: 50px;
+    width: var(--cell_size);
+    height: var(--cell_size);
     position: absolute;
 }
 .white{
@@ -82,20 +87,20 @@ img{
     font-size: 10px;
 }
 .file{
-    width: 50px;
-    height: 10px;
+    width: var(--cell_size);
+    height: var(--numbering_size);
 }
 .rank{
-    width: 10px;
-    height: 50px;
+    width: var(--numbering_size);
+    height: var(--cell_size);
 }
 .file_line{
     display: flex;
 }
 
 .king_check{
-    width: 50px;
-    height: 50px;
+    width: var(--cell_size);
+    height: var(--cell_size);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,14 +108,14 @@ img{
     background: radial-gradient(white 65%, black 80%);
 }
 .path{
-    width: 20px;
-    height: 20px;
+    width: calc(var(--cell_size)/3);
+    height: calc(var(--cell_size)/3);
     border-radius: 50%;
     background: darkgray;
 }
 .take{
-    width: 50px;
-    height: 50px;
+    width: var(--cell_size);
+    height: var(--cell_size);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -118,8 +123,8 @@ img{
     background: radial-gradient(white 65%, darkgray 80%);
 }
 .last_move{
-    width: 50px;
-    height: 50px;
+    width: var(--cell_size);
+    height: var(--cell_size);
     position: absolute;
     background-image: repeating-linear-gradient(45deg, rgb(0, 0, 0), rgb(0, 0, 0) 1.5%, transparent 1.5%, transparent 5%);
 }
@@ -127,8 +132,8 @@ img{
 
 /*  Notation  */
 .info{
-    width: 200px;
-    height: 410px;
+    width: calc(var(--cell_size) * 4);
+    height: calc(var(--cell_size) * 8 + var(--numbering_size));
     margin-left: 5px;
 
     box-shadow: 0 0 5px black;
@@ -136,8 +141,8 @@ img{
     overflow: hidden;
 }
 .notation{
-    width: 200px;
-    height: 410px;
+    width: calc(var(--cell_size) * 4);
+    height: calc(var(--cell_size) * 8 + var(--numbering_size));
 
     overflow-y: scroll;
     overflow-x: hidden;
@@ -146,7 +151,7 @@ img{
     display: none;
 }
 .notation_header, .notation_table{
-    width: 200px;
+    width: calc(var(--cell_size) * 4);
 
     border-collapse : collapse;
     table-layout: fixed;
@@ -165,7 +170,7 @@ th, td{
 }
 
 .move{
-    width: 200px;
+    width: calc(var(--cell_size) * 4);
     height: 30px;
     padding: 0;
     display: flex;
